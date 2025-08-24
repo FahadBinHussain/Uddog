@@ -1,0 +1,102 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  user_id      Int         @id @default(autoincrement())
+  name         String
+  email        String      @unique
+  passwordHash String
+  role         String
+  dateJoined   DateTime    @default(now())
+
+  campaigns    Campaign[]
+  donations    Donation[]
+  comments     Comment[]
+  verifications Verification[] @relation("AdminVerifications")
+  fraudReports FraudReport[]
+}
+
+model Campaign {
+  campaign_id   Int           @id @default(autoincrement())
+  title         String
+  description   String
+  goalAmount    Float
+  currentAmount Float          @default(0)
+  status        String
+  createdAt     DateTime       @default(now())
+
+  user_id Int
+  user    User                @relation(fields: [user_id], references: [user_id])
+
+  donations    Donation[]
+  comments     Comment[]
+  impactStories ImpactStory[]
+  verifications Verification[]
+  fraudReports FraudReport[]
+}
+
+model Donation {
+  donation_id   Int      @id @default(autoincrement())
+  amount        Float
+  donationDate  DateTime @default(now())
+  isRecurring   Boolean
+
+  campaign_id Int
+  user_id     Int
+
+  campaign Campaign @relation(fields: [campaign_id], references: [campaign_id])
+  user     User     @relation(fields: [user_id], references: [user_id])
+}
+
+model Comment {
+  comment_id  Int      @id @default(autoincrement())
+  content     String
+  createdAt   DateTime @default(now())
+
+  campaign_id Int
+  user_id     Int
+
+  campaign Campaign @relation(fields: [campaign_id], references: [campaign_id])
+  user     User     @relation(fields: [user_id], references: [user_id])
+}
+
+model ImpactStory {
+  story_id   Int      @id @default(autoincrement())
+  title      String
+  content    String
+  postedAt   DateTime @default(now())
+
+  campaign_id Int
+  campaign    Campaign @relation(fields: [campaign_id], references: [campaign_id])
+}
+
+model Verification {
+  verification_id Int      @id @default(autoincrement())
+  status          String
+  verifiedAt      DateTime @default(now())
+
+  campaign_id Int
+  verified_by Int
+
+  campaign Campaign @relation(fields: [campaign_id], references: [campaign_id])
+  admin    User     @relation("AdminVerifications", fields: [verified_by], references: [user_id])
+}
+
+model FraudReport {
+  report_id   Int      @id @default(autoincrement())
+  reason      String
+  createdAt   DateTime @default(now())
+  status      String
+
+  campaign_id Int
+  reported_by Int
+
+  campaign  Campaign @relation(fields: [campaign_id], references: [campaign_id])
+  reporter  User     @relation(fields: [reported_by], references: [user_id])
+}
