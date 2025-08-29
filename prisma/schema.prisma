@@ -30,7 +30,7 @@ model Campaign {
   currentAmount Float          @default(0)
   status        String
   createdAt     DateTime       @default(now())
-
+  category      String
   user_id Int
   user    User                @relation(fields: [user_id], references: [user_id])
 
