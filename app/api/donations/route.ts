@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
             amount,
             isRecurring: true,
             campaign_id: campaignId,
-            user_id: userId,
+            donor_id: userId,
           },
           include: {
             campaign: {
@@ -231,7 +231,7 @@ export async function POST(request: NextRequest) {
             amount,
             isRecurring: false,
             campaign_id: campaignId,
-            user_id: userId,
+            donor_id: userId,
           },
           include: {
             campaign: {
@@ -307,7 +307,7 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit;
 
-    const where: any = { user_id: userId };
+    const where: any = { donor_id: userId };
     if (campaignId) {
       where.campaign_id = parseInt(campaignId);
     }

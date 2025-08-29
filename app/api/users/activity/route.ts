@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     // Get recent donations made by the user
     const recentDonations = await prisma.donation.findMany({
-      where: { user_id: targetUserId },
+      where: { donor_id: targetUserId },
       take: Math.floor(limit / 3),
       orderBy: { donationDate: "desc" },
       include: {

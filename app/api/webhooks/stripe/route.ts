@@ -19,10 +19,7 @@ export async function POST(req: NextRequest) {
     event = stripe.webhooks.constructEvent(body, signature, endpointSecret);
   } catch (err: any) {
     console.error(`Webhook signature verification failed:`, err.message);
-    return NextResponse.json(
-      { error: "Invalid signature" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
   try {
@@ -37,25 +34,25 @@ export async function POST(req: NextRequest) {
 
       case "invoice.payment_succeeded":
         await handleSubscriptionPaymentSuccess(
-          event.data.object as Stripe.Invoice
+          event.data.object as Stripe.Invoice,
         );
         break;
 
       case "invoice.payment_failed":
         await handleSubscriptionPaymentFailed(
-          event.data.object as Stripe.Invoice
+          event.data.object as Stripe.Invoice,
         );
         break;
 
       case "customer.subscription.deleted":
         await handleSubscriptionCanceled(
-          event.data.object as Stripe.Subscription
+          event.data.object as Stripe.Subscription,
         );
         break;
 
       case "customer.subscription.updated":
         await handleSubscriptionUpdated(
-          event.data.object as Stripe.Subscription
+          event.data.object as Stripe.Subscription,
         );
         break;
 
@@ -68,7 +65,7 @@ export async function POST(req: NextRequest) {
     console.error(`Webhook handler failed:`, error);
     return NextResponse.json(
       { error: "Webhook handler failed" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -102,7 +99,7 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
       await prisma.campaign.update({
         where: { campaign_id: parseInt(campaignId) },
         data: {
-          amountRaised: {
+          currentAmount: {
             increment: donation.amount,
           },
         },
@@ -136,7 +133,7 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
 
 async function handleSubscriptionPaymentSuccess(invoice: Stripe.Invoice) {
   const subscription = await stripe.subscriptions.retrieve(
-    invoice.subscription as string
+    invoice.subscription as string,
   );
 
   const { campaignId, userId } = subscription.metadata;
@@ -167,7 +164,7 @@ async function handleSubscriptionPaymentSuccess(invoice: Stripe.Invoice) {
   await prisma.campaign.update({
     where: { campaign_id: parseInt(campaignId) },
     data: {
-      amountRaised: {
+      currentAmount: {
         increment: amount,
       },
     },
@@ -178,7 +175,7 @@ async function handleSubscriptionPaymentSuccess(invoice: Stripe.Invoice) {
 
 async function handleSubscriptionPaymentFailed(invoice: Stripe.Invoice) {
   const subscription = await stripe.subscriptions.retrieve(
-    invoice.subscription as string
+    invoice.subscription as string,
   );
 
   const { campaignId, userId } = subscription.metadata;

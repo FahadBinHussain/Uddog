@@ -49,13 +49,18 @@ model Donation {
   donation_id   Int      @id @default(autoincrement())
   amount        Float
   donationDate  DateTime @default(now())
-  isRecurring   Boolean
+  isRecurring   Boolean  @default(false)
+  isAnonymous   Boolean  @default(false)
+  status        String   @default("pending")
+  completedAt   DateTime?
+  stripePaymentIntentId String?
+  stripeSubscriptionId  String?
 
   campaign_id Int
-  user_id     Int
+  donor_id    Int
 
   campaign Campaign @relation(fields: [campaign_id], references: [campaign_id])
-  user     User     @relation(fields: [user_id], references: [user_id])
+  user     User     @relation(fields: [donor_id], references: [user_id])
 }
 
 model Comment {

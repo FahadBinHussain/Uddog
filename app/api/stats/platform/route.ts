@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         where: { user_id: userId },
       }),
       prisma.donation.count({
-        where: { user_id: userId },
+        where: { donor_id: userId },
       }),
       prisma.donation.count({
         where: {
