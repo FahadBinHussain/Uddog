@@ -616,13 +616,13 @@ export default function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-16">
+      <section className="py-16 bg-gradient-to-br from-blue-600 via-blue-700 to-purple-800">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">
               How UdDog Works
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-white/90 max-w-2xl mx-auto">
               Our platform makes it easy to start fundraising or support causes
               you care about.
             </p>
@@ -633,8 +633,10 @@ export default function HomePage() {
               <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Target className="w-8 h-8 text-blue-600 dark:text-blue-400" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Start a Campaign</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-xl font-semibold mb-3 text-white">
+                Start a Campaign
+              </h3>
+              <p className="text-white/80">
                 Create your fundraising campaign with our easy-to-use tools. Add
                 photos, describe your cause, and set your goal.
               </p>
@@ -644,8 +646,10 @@ export default function HomePage() {
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Share & Promote</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-xl font-semibold mb-3 text-white">
+                Share & Promote
+              </h3>
+              <p className="text-white/80">
                 Share your campaign with friends, family, and social networks.
                 Use our built-in sharing tools to reach more people.
               </p>
@@ -655,8 +659,10 @@ export default function HomePage() {
               <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Shield className="w-8 h-8 text-purple-600 dark:text-purple-400" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Receive Donations</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-xl font-semibold mb-3 text-white">
+                Receive Donations
+              </h3>
+              <p className="text-white/80">
                 Get verified and start receiving secure donations. Track your
                 progress and share updates with supporters.
               </p>
