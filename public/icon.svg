@@ -1,0 +1,10 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="#3b82f6"/>
+
+  <!-- Heart icon -->
+  <path d="M256 448c-12.8 0-25.6-4.8-35.2-14.4L76.8 288c-38.4-38.4-38.4-99.2 0-137.6 38.4-38.4 99.2-38.4 137.6 0L256 192l41.6-41.6c38.4-38.4 99.2-38.4 137.6 0 38.4 38.4 38.4 99.2 0 137.6L291.2 433.6c-9.6 9.6-22.4 14.4-35.2 14.4z" fill="white"/>
+
+  <!-- Text "UD" -->
+  <text x="256" y="320" font-family="Arial, sans-serif" font-size="80" font-weight="bold" text-anchor="middle" fill="white">UD</text>
+</svg>

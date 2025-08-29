@@ -1,0 +1,64 @@
+{
+  "name": "UdDog - Fundraising Platform",
+  "short_name": "UdDog",
+  "description": "The world's most trusted fundraising platform. Help people raise money for the causes they care about most.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en-US",
+  "categories": ["fundraising", "charity", "donations"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ],
+
+  "shortcuts": [
+    {
+      "name": "Create Campaign",
+      "short_name": "Create",
+      "description": "Start a new fundraising campaign",
+      "url": "/campaigns/create",
+      "icons": [
+        {
+          "src": "/icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Browse Campaigns",
+      "short_name": "Browse",
+      "description": "Discover campaigns to support",
+      "url": "/campaigns",
+      "icons": [
+        {
+          "src": "/icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "My Profile",
+      "short_name": "Profile",
+      "description": "View and edit your profile",
+      "url": "/settings",
+      "icons": [
+        {
+          "src": "/icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+}
