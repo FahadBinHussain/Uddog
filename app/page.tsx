@@ -1,14 +1,21 @@
-'use client'
+"use client";
 
-import React, { useEffect, useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useSession } from 'next-auth/react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Input } from '@/components/ui/input'
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 import {
   Heart,
   Search,
@@ -19,91 +26,100 @@ import {
   ArrowRight,
   Star,
   Target,
-  Shield
-} from 'lucide-react'
-import { formatCurrency, calculatePercentage, formatRelativeTime } from '@/lib/utils'
+  Shield,
+} from "lucide-react";
+import {
+  formatCurrency,
+  calculatePercentage,
+  formatRelativeTime,
+} from "@/lib/utils";
 
 interface Campaign {
-  campaign_id: number
-  title: string
-  description: string
-  goalAmount: number
-  currentAmount: number
-  status: string
-  createdAt: string
+  campaign_id: number;
+  title: string;
+  description: string;
+  goalAmount: number;
+  currentAmount: number;
+  status: string;
+  createdAt: string;
   user: {
-    name: string
-  }
+    name: string;
+  };
   _count?: {
-    donations: number
-  }
-  isVerified?: boolean
+    donations: number;
+  };
+  isVerified?: boolean;
 }
 
 interface Stats {
-  totalCampaigns: number
-  totalDonations: number
-  totalRaised: number
-  activeDonors: number
+  totalCampaigns: number;
+  totalDonations: number;
+  totalRaised: number;
+  activeDonors: number;
 }
 
 export default function HomePage() {
-  const { data: session } = useSession()
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [featuredCampaigns, setFeaturedCampaigns] = useState<Campaign[]>([])
+  const { data: session } = useSession();
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [featuredCampaigns, setFeaturedCampaigns] = useState<Campaign[]>([]);
   const [stats, setStats] = useState<Stats>({
     totalCampaigns: 0,
     totalDonations: 0,
     totalRaised: 0,
-    activeDonors: 0
-  })
-  const [searchQuery, setSearchQuery] = useState('')
-  const [loading, setLoading] = useState(true)
+    activeDonors: 0,
+  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchHomePageData()
-  }, [])
+    fetchHomePageData();
+  }, []);
 
   const fetchHomePageData = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
 
       // Fetch featured campaigns
-      const featuredResponse = await fetch('/api/campaigns?featured=true&limit=6')
+      const featuredResponse = await fetch(
+        "/api/campaigns?featured=true&limit=6",
+      );
       if (featuredResponse.ok) {
-        const featuredData = await featuredResponse.json()
-        setFeaturedCampaigns(featuredData.campaigns || [])
+        const featuredData = await featuredResponse.json();
+        setFeaturedCampaigns(featuredData.campaigns || []);
       }
 
       // Fetch recent campaigns
-      const recentResponse = await fetch('/api/campaigns?limit=8&sort=recent')
+      const recentResponse = await fetch("/api/campaigns?limit=8&sort=recent");
       if (recentResponse.ok) {
-        const recentData = await recentResponse.json()
-        setCampaigns(recentData.campaigns || [])
+        const recentData = await recentResponse.json();
+        setCampaigns(recentData.campaigns || []);
       }
 
       // Fetch platform stats
-      const statsResponse = await fetch('/api/stats/platform')
+      const statsResponse = await fetch("/api/stats/platform");
       if (statsResponse.ok) {
-        const statsData = await statsResponse.json()
-        setStats(statsData)
+        const statsData = await statsResponse.json();
+        setStats(statsData);
       }
     } catch (error) {
-      console.error('Error fetching homepage data:', error)
+      console.error("Error fetching homepage data:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/campaigns?search=${encodeURIComponent(searchQuery)}`
+      window.location.href = `/campaigns?search=${encodeURIComponent(searchQuery)}`;
     }
-  }
+  };
 
   const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
-    const progressPercentage = calculatePercentage(campaign.currentAmount, campaign.goalAmount)
+    const progressPercentage = calculatePercentage(
+      campaign.currentAmount,
+      campaign.goalAmount,
+    );
 
     return (
       <Card className="campaign-card hover:shadow-lg transition-all duration-300 group">
@@ -140,10 +156,7 @@ export default function HomePage() {
               </span>
             </div>
 
-            <Progress
-              value={progressPercentage}
-              className="h-2"
-            />
+            <Progress value={progressPercentage} className="h-2" />
 
             <div className="flex justify-between items-center text-xs text-muted-foreground">
               <span>{progressPercentage}% funded</span>
@@ -160,33 +173,42 @@ export default function HomePage() {
           </Link>
         </CardFooter>
       </Card>
-    )
-  }
+    );
+  };
 
-  const StatCard = ({ icon: Icon, label, value, trend }: {
-    icon: React.ElementType
-    label: string
-    value: string | number
-    trend?: string
+  const StatCard = ({
+    icon: Icon,
+    label,
+    value,
+    trend,
+  }: {
+    icon: React.ElementType;
+    label: string;
+    value: string | number;
+    trend?: string;
   }) => (
-    <Card className="dashboard-card">
-      <CardContent className="dashboard-stat">
+    <Card className="bg-white dark:bg-gray-800 shadow-sm border">
+      <CardContent className="p-6">
         <div className="flex items-center justify-between">
-          <div>
-            <p className="stat-label">{label}</p>
-            <p className="stat-number">{value}</p>
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              {label}
+            </p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {value}
+            </p>
             {trend && (
-              <p className="text-xs text-green-600 mt-1">
-                <TrendingUp className="w-3 h-3 inline mr-1" />
+              <p className="text-xs text-green-600 dark:text-green-400 flex items-center">
+                <TrendingUp className="w-3 h-3 mr-1" />
                 {trend}
               </p>
             )}
           </div>
-          <Icon className="w-8 h-8 text-primary" />
+          <Icon className="w-8 h-8 text-primary opacity-80" />
         </div>
       </CardContent>
     </Card>
-  )
+  );
 
   if (loading) {
     return (
@@ -196,7 +218,7 @@ export default function HomePage() {
           <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -209,11 +231,15 @@ export default function HomePage() {
               Make a Difference Today
             </h1>
             <p className="text-xl sm:text-2xl mb-8 text-white/90 max-w-2xl mx-auto animate-fade-in-up animation-delay-200">
-              Join thousands of people supporting causes they care about. Every donation counts.
+              Join thousands of people supporting causes they care about. Every
+              donation counts.
             </p>
 
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-8 animate-fade-in-up animation-delay-400">
+            <form
+              onSubmit={handleSearch}
+              className="max-w-2xl mx-auto mb-8 animate-fade-in-up animation-delay-400"
+            >
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
@@ -234,7 +260,10 @@ export default function HomePage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up animation-delay-600">
               <Link href="/campaigns">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-white/90 px-8">
+                <Button
+                  size="lg"
+                  className="bg-white text-blue-600 hover:bg-white/90 px-8"
+                >
                   Browse Campaigns
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
@@ -242,13 +271,21 @@ export default function HomePage() {
 
               {session ? (
                 <Link href="/dashboard">
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 px-8">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-white text-white hover:bg-white hover:text-blue-600 px-8"
+                  >
                     My Dashboard
                   </Button>
                 </Link>
               ) : (
                 <Link href="/campaigns/create">
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 px-8">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-white text-white hover:bg-white hover:text-blue-600 px-8"
+                  >
                     Start a Campaign
                   </Button>
                 </Link>
@@ -299,7 +336,8 @@ export default function HomePage() {
                 Featured Campaigns
               </h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Discover amazing causes that are making a real impact in communities around the world.
+                Discover amazing causes that are making a real impact in
+                communities around the world.
               </p>
             </div>
 
@@ -358,7 +396,8 @@ export default function HomePage() {
               How UdDog Works
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Our platform makes it easy to start fundraising or support causes you care about.
+              Our platform makes it easy to start fundraising or support causes
+              you care about.
             </p>
           </div>
 
@@ -369,7 +408,8 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-semibold mb-3">Start a Campaign</h3>
               <p className="text-muted-foreground">
-                Create your fundraising campaign with our easy-to-use tools. Add photos, describe your cause, and set your goal.
+                Create your fundraising campaign with our easy-to-use tools. Add
+                photos, describe your cause, and set your goal.
               </p>
             </div>
 
@@ -379,7 +419,8 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-semibold mb-3">Share & Promote</h3>
               <p className="text-muted-foreground">
-                Share your campaign with friends, family, and social networks. Use our built-in sharing tools to reach more people.
+                Share your campaign with friends, family, and social networks.
+                Use our built-in sharing tools to reach more people.
               </p>
             </div>
 
@@ -389,7 +430,8 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-semibold mb-3">Receive Donations</h3>
               <p className="text-muted-foreground">
-                Get verified and start receiving secure donations. Track your progress and share updates with supporters.
+                Get verified and start receiving secure donations. Track your
+                progress and share updates with supporters.
               </p>
             </div>
           </div>
@@ -403,20 +445,28 @@ export default function HomePage() {
             Ready to Make an Impact?
           </h2>
           <p className="text-xl mb-8 text-blue-100 max-w-2xl mx-auto">
-            Whether you're raising funds for a cause or supporting others, UdDog makes it simple and secure.
+            Whether you're raising funds for a cause or supporting others, UdDog
+            makes it simple and secure.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {session ? (
               <>
                 <Link href="/campaigns/create">
-                  <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8">
+                  <Button
+                    size="lg"
+                    className="bg-white text-blue-600 hover:bg-gray-100 px-8"
+                  >
                     Create Campaign
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
                 </Link>
                 <Link href="/dashboard">
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 px-8">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-white text-white hover:bg-white hover:text-blue-600 px-8"
+                  >
                     View Dashboard
                   </Button>
                 </Link>
@@ -424,13 +474,20 @@ export default function HomePage() {
             ) : (
               <>
                 <Link href="/auth/signup">
-                  <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8">
+                  <Button
+                    size="lg"
+                    className="bg-white text-blue-600 hover:bg-gray-100 px-8"
+                  >
                     Get Started
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
                 </Link>
                 <Link href="/auth/signin">
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 px-8">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-white text-white hover:bg-white hover:text-blue-600 px-8"
+                  >
                     Sign In
                   </Button>
                 </Link>
@@ -440,5 +497,5 @@ export default function HomePage() {
         </div>
       </section>
     </div>
-  )
+  );
 }
