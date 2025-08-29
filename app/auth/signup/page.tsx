@@ -1,127 +1,200 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import { signIn, getSession } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Eye, EyeOff, Mail, Lock, Heart, AlertCircle, User, Check } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
-import { isValidEmail, isValidPassword } from '@/lib/utils'
+import React, { useState, useEffect } from "react";
+import { signIn, getSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  Heart,
+  AlertCircle,
+  User,
+  Check,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { isValidEmail, isValidPassword } from "@/lib/utils";
 
 export default function SignUpPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { toast } = useToast()
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    role: 'donor'
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [acceptedTerms, setAcceptedTerms] = useState(false)
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "donor",
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-  const callbackUrl = searchParams.get('callbackUrl') || '/'
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   useEffect(() => {
     // Check if user is already signed in
     getSession().then((session) => {
       if (session) {
-        router.push(callbackUrl)
+        router.push(callbackUrl);
       }
-    })
-  }, [router, callbackUrl])
+    });
+  }, [router, callbackUrl]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
+      [name]: value,
+    }));
     // Clear error when user starts typing
-    if (error) setError('')
-  }
+    if (error) setError("");
+  };
 
   const handleRoleChange = (value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      role: value
-    }))
-  }
+      role: value,
+    }));
+  };
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      setError('Name is required')
-      return false
+      setError("Name is required");
+      return false;
     }
 
     if (formData.name.trim().length < 2) {
-      setError('Name must be at least 2 characters long')
-      return false
+      setError("Name must be at least 2 characters long");
+      return false;
     }
 
     if (!formData.email) {
-      setError('Email is required')
-      return false
+      setError("Email is required");
+      return false;
     }
 
     if (!isValidEmail(formData.email)) {
-      setError('Please enter a valid email address')
-      return false
+      setError("Please enter a valid email address");
+      return false;
     }
 
     if (!formData.password) {
-      setError('Password is required')
-      return false
+      setError("Password is required");
+      return false;
     }
 
     if (!isValidPassword(formData.password)) {
-      setError('Password must be at least 8 characters with uppercase, lowercase, and number')
-      return false
+      setError(
+        "Password must be at least 8 characters with uppercase, lowercase, and number",
+      );
+      return false;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      return false
+      setError("Passwords do not match");
+      return false;
     }
 
     if (!acceptedTerms) {
-      setError('You must accept the Terms of Service and Privacy Policy')
-      return false
+      setError("You must accept the Terms of Service and Privacy Policy");
+      return false;
     }
 
-    return true
-  }
+    return true;
+  };
+
+  const getValidationStatus = () => {
+    const issues = [];
+
+    // Only show validation issues for fields that have been touched
+    if (formData.name.trim() && formData.name.trim().length < 2) {
+      issues.push("Name must be at least 2 characters");
+    } else if (!formData.name.trim()) {
+      issues.push("Name is required");
+    }
+
+    if (formData.email && !isValidEmail(formData.email)) {
+      issues.push("Please enter a valid email address");
+    } else if (!formData.email) {
+      issues.push("Email address is required");
+    }
+
+    if (formData.password && !isValidPassword(formData.password)) {
+      issues.push(
+        "Password must be at least 8 characters with uppercase, lowercase, and number",
+      );
+    } else if (!formData.password) {
+      issues.push("Password is required");
+    }
+
+    if (
+      formData.password &&
+      formData.confirmPassword &&
+      formData.password !== formData.confirmPassword
+    ) {
+      issues.push("Passwords must match");
+    } else if (formData.password && !formData.confirmPassword) {
+      issues.push("Please confirm your password");
+    }
+
+    if (!acceptedTerms) {
+      issues.push("Must accept Terms of Service and Privacy Policy");
+    }
+
+    return issues;
+  };
+
+  const validationIssues = getValidationStatus();
+  const isFormValid =
+    formData.name.trim().length >= 2 &&
+    isValidEmail(formData.email) &&
+    isValidPassword(formData.password) &&
+    formData.password === formData.confirmPassword &&
+    acceptedTerms;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError("");
 
     try {
       // Register user
-      const registerResponse = await fetch('/api/auth/register', {
-        method: 'POST',
+      const registerResponse = await fetch("/api/auth/register", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: formData.name.trim(),
@@ -129,71 +202,71 @@ export default function SignUpPage() {
           password: formData.password,
           role: formData.role,
         }),
-      })
+      });
 
-      const registerData = await registerResponse.json()
+      const registerData = await registerResponse.json();
 
       if (!registerResponse.ok) {
-        setError(registerData.error || 'Registration failed')
+        setError(registerData.error || "Registration failed");
         toast({
-          title: 'Registration Failed',
-          description: registerData.error || 'Please try again',
-          variant: 'destructive',
-        })
-        return
+          title: "Registration Failed",
+          description: registerData.error || "Please try again",
+          variant: "destructive",
+        });
+        return;
       }
 
       // Auto sign in after successful registration
-      const signInResult = await signIn('credentials', {
+      const signInResult = await signIn("credentials", {
         email: formData.email.toLowerCase().trim(),
         password: formData.password,
         redirect: false,
-      })
+      });
 
       if (signInResult?.error) {
         toast({
-          title: 'Account Created',
-          description: 'Your account was created successfully. Please sign in.',
-          variant: 'success',
-        })
-        router.push('/auth/signin')
+          title: "Account Created",
+          description: "Your account was created successfully. Please sign in.",
+          variant: "success",
+        });
+        router.push("/auth/signin");
       } else if (signInResult?.ok) {
         toast({
-          title: 'Welcome to UdDog!',
-          description: 'Your account has been created and you are now signed in.',
-          variant: 'success',
-        })
+          title: "Welcome to UdDog!",
+          description:
+            "Your account has been created and you are now signed in.",
+          variant: "success",
+        });
 
         // Small delay to show success message
         setTimeout(() => {
-          router.push(callbackUrl)
-        }, 1000)
+          router.push(callbackUrl);
+        }, 1000);
       }
-
     } catch (error) {
-      console.error('Registration error:', error)
-      setError('An unexpected error occurred')
+      console.error("Registration error:", error);
+      setError("An unexpected error occurred");
       toast({
-        title: 'Error',
-        description: 'An unexpected error occurred during registration',
-        variant: 'destructive',
-      })
+        title: "Error",
+        description: "An unexpected error occurred during registration",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const getPasswordStrength = (password: string) => {
-    let strength = 0
-    if (password.length >= 8) strength++
-    if (/[a-z]/.test(password)) strength++
-    if (/[A-Z]/.test(password)) strength++
-    if (/[0-9]/.test(password)) strength++
-    if (/[^A-Za-z0-9]/.test(password)) strength++
-    return strength
-  }
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    return strength;
+  };
 
-  const passwordStrength = getPasswordStrength(formData.password)
+  const passwordStrength = getPasswordStrength(formData.password);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -202,7 +275,9 @@ export default function SignUpPage() {
         <div className="text-center">
           <Link href="/" className="flex items-center justify-center mb-8">
             <Heart className="h-12 w-12 text-primary mr-3" />
-            <span className="text-3xl font-bold text-gray-900 dark:text-white">UdDog</span>
+            <span className="text-3xl font-bold text-gray-900 dark:text-white">
+              UdDog
+            </span>
           </Link>
           <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
             Create your account
@@ -270,7 +345,9 @@ export default function SignUpPage() {
                   />
                 </div>
                 {formData.email && !isValidEmail(formData.email) && (
-                  <p className="text-sm text-red-600">Please enter a valid email address</p>
+                  <p className="text-sm text-red-600">
+                    Please enter a valid email address
+                  </p>
                 )}
               </div>
 
@@ -285,13 +362,17 @@ export default function SignUpPage() {
                     <SelectItem value="donor">
                       <div className="flex flex-col">
                         <span className="font-medium">Donor</span>
-                        <span className="text-xs text-gray-500">Support campaigns and causes</span>
+                        <span className="text-xs text-gray-500">
+                          Support campaigns and causes
+                        </span>
                       </div>
                     </SelectItem>
                     <SelectItem value="creator">
                       <div className="flex flex-col">
                         <span className="font-medium">Campaign Creator</span>
-                        <span className="text-xs text-gray-500">Create and manage fundraising campaigns</span>
+                        <span className="text-xs text-gray-500">
+                          Create and manage fundraising campaigns
+                        </span>
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -306,7 +387,7 @@ export default function SignUpPage() {
                   <Input
                     id="password"
                     name="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     autoComplete="new-password"
                     required
                     value={formData.password}
@@ -339,11 +420,11 @@ export default function SignUpPage() {
                           className={`h-1 flex-1 rounded-full ${
                             passwordStrength >= level
                               ? passwordStrength <= 2
-                                ? 'bg-red-500'
+                                ? "bg-red-500"
                                 : passwordStrength <= 3
-                                ? 'bg-yellow-500'
-                                : 'bg-green-500'
-                              : 'bg-gray-200'
+                                  ? "bg-yellow-500"
+                                  : "bg-green-500"
+                              : "bg-gray-200"
                           }`}
                         />
                       ))}
@@ -351,20 +432,36 @@ export default function SignUpPage() {
                     <div className="text-xs text-gray-600">
                       Password requirements:
                       <ul className="mt-1 space-y-1">
-                        <li className={`flex items-center ${formData.password.length >= 8 ? 'text-green-600' : 'text-gray-500'}`}>
-                          <Check className={`h-3 w-3 mr-1 ${formData.password.length >= 8 ? 'text-green-600' : 'text-gray-400'}`} />
+                        <li
+                          className={`flex items-center ${formData.password.length >= 8 ? "text-green-600" : "text-gray-500"}`}
+                        >
+                          <Check
+                            className={`h-3 w-3 mr-1 ${formData.password.length >= 8 ? "text-green-600" : "text-gray-400"}`}
+                          />
                           At least 8 characters
                         </li>
-                        <li className={`flex items-center ${/[a-z]/.test(formData.password) ? 'text-green-600' : 'text-gray-500'}`}>
-                          <Check className={`h-3 w-3 mr-1 ${/[a-z]/.test(formData.password) ? 'text-green-600' : 'text-gray-400'}`} />
+                        <li
+                          className={`flex items-center ${/[a-z]/.test(formData.password) ? "text-green-600" : "text-gray-500"}`}
+                        >
+                          <Check
+                            className={`h-3 w-3 mr-1 ${/[a-z]/.test(formData.password) ? "text-green-600" : "text-gray-400"}`}
+                          />
                           One lowercase letter
                         </li>
-                        <li className={`flex items-center ${/[A-Z]/.test(formData.password) ? 'text-green-600' : 'text-gray-500'}`}>
-                          <Check className={`h-3 w-3 mr-1 ${/[A-Z]/.test(formData.password) ? 'text-green-600' : 'text-gray-400'}`} />
+                        <li
+                          className={`flex items-center ${/[A-Z]/.test(formData.password) ? "text-green-600" : "text-gray-500"}`}
+                        >
+                          <Check
+                            className={`h-3 w-3 mr-1 ${/[A-Z]/.test(formData.password) ? "text-green-600" : "text-gray-400"}`}
+                          />
                           One uppercase letter
                         </li>
-                        <li className={`flex items-center ${/[0-9]/.test(formData.password) ? 'text-green-600' : 'text-gray-500'}`}>
-                          <Check className={`h-3 w-3 mr-1 ${/[0-9]/.test(formData.password) ? 'text-green-600' : 'text-gray-400'}`} />
+                        <li
+                          className={`flex items-center ${/[0-9]/.test(formData.password) ? "text-green-600" : "text-gray-500"}`}
+                        >
+                          <Check
+                            className={`h-3 w-3 mr-1 ${/[0-9]/.test(formData.password) ? "text-green-600" : "text-gray-400"}`}
+                          />
                           One number
                         </li>
                       </ul>
@@ -381,7 +478,7 @@ export default function SignUpPage() {
                   <Input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
+                    type={showConfirmPassword ? "text" : "password"}
                     autoComplete="new-password"
                     required
                     value={formData.confirmPassword}
@@ -403,9 +500,12 @@ export default function SignUpPage() {
                     )}
                   </button>
                 </div>
-                {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                  <p className="text-sm text-red-600">Passwords do not match</p>
-                )}
+                {formData.confirmPassword &&
+                  formData.password !== formData.confirmPassword && (
+                    <p className="text-sm text-red-600">
+                      Passwords do not match
+                    </p>
+                  )}
               </div>
 
               {/* Terms and Conditions */}
@@ -417,12 +517,18 @@ export default function SignUpPage() {
                 />
                 <div className="text-sm">
                   <label htmlFor="terms" className="cursor-pointer">
-                    I agree to the{' '}
-                    <Link href="/terms" className="text-primary hover:text-primary/90 underline">
+                    I agree to the{" "}
+                    <Link
+                      href="/terms"
+                      className="text-primary hover:text-primary/90 underline"
+                    >
                       Terms of Service
-                    </Link>{' '}
-                    and{' '}
-                    <Link href="/privacy" className="text-primary hover:text-primary/90 underline">
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      href="/privacy"
+                      className="text-primary hover:text-primary/90 underline"
+                    >
                       Privacy Policy
                     </Link>
                   </label>
@@ -431,10 +537,35 @@ export default function SignUpPage() {
             </CardContent>
 
             <CardFooter className="flex flex-col space-y-4">
+              {/* Validation Status */}
+              {!isFormValid && validationIssues.length > 0 && (
+                <div className="w-full p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-md">
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">
+                      <p className="text-orange-800 dark:text-orange-200 font-medium mb-1">
+                        Please complete the following:
+                      </p>
+                      <ul className="text-orange-700 dark:text-orange-300 space-y-1">
+                        {validationIssues.map((issue, index) => (
+                          <li
+                            key={index}
+                            className="flex items-center space-x-1"
+                          >
+                            <span className="w-1 h-1 bg-orange-500 rounded-full"></span>
+                            <span>{issue}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <Button
                 type="submit"
-                className="w-full"
-                disabled={loading || !acceptedTerms || !isValidEmail(formData.email) || !isValidPassword(formData.password) || formData.password !== formData.confirmPassword}
+                className="w-full relative"
+                disabled={loading || !isFormValid}
               >
                 {loading ? (
                   <>
@@ -442,14 +573,19 @@ export default function SignUpPage() {
                     Creating account...
                   </>
                 ) : (
-                  'Create Account'
+                  <>
+                    <span>Create Account</span>
+                    {isFormValid && <Check className="h-4 w-4 ml-2" />}
+                  </>
                 )}
               </Button>
 
               <Separator />
 
               <div className="text-center text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Already have an account? </span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Already have an account?{" "}
+                </span>
                 <Link
                   href="/auth/signin"
                   className="text-primary hover:text-primary/90 font-medium"
@@ -464,11 +600,12 @@ export default function SignUpPage() {
         {/* Security Notice */}
         <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
           <p className="text-sm text-green-800 dark:text-green-200">
-            <strong>Your data is secure.</strong> We use industry-standard encryption
-            to protect your personal information and never share it with third parties.
+            <strong>Your data is secure.</strong> We use industry-standard
+            encryption to protect your personal information and never share it
+            with third parties.
           </p>
         </div>
       </div>
     </div>
-  )
+  );
 }
