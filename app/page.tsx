@@ -434,7 +434,7 @@ export default function HomePage() {
                     <Button
                       size="lg"
                       variant="outline"
-                      className="border-white text-white hover:bg-white hover:text-blue-600 px-8"
+                      className="border-2 border-white text-white bg-transparent hover:bg-white hover:text-blue-600 px-8 font-medium"
                     >
                       My Dashboard
                     </Button>
@@ -450,7 +450,7 @@ export default function HomePage() {
                     <Button
                       size="lg"
                       variant="outline"
-                      className="border-white text-white hover:bg-white hover:text-blue-600 px-8"
+                      className="border-2 border-white text-white bg-transparent hover:bg-white hover:text-blue-600 px-8 font-medium"
                     >
                       Start a Campaign
                     </Button>
