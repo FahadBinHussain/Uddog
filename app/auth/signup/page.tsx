@@ -513,7 +513,9 @@ export default function SignUpPage() {
                 <Checkbox
                   id="terms"
                   checked={acceptedTerms}
-                  onCheckedChange={setAcceptedTerms}
+                  onCheckedChange={(checked) =>
+                    setAcceptedTerms(checked === true)
+                  }
                 />
                 <div className="text-sm">
                   <label htmlFor="terms" className="cursor-pointer">

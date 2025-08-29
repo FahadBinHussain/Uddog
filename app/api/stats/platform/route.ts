@@ -44,7 +44,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching platform stats:", error);
     return NextResponse.json(
-      { error: "Failed to fetch platform statistics", details: error.message },
+      {
+        error: "Failed to fetch platform statistics",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 },
     );
   }

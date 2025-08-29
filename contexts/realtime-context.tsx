@@ -18,6 +18,19 @@ import {
 } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
+// Type for Supabase subscription objects
+type SupabaseSubscription = {
+  unsubscribe: () => void;
+};
+
+// Type for campaign subscriptions
+type CampaignSubscriptions = {
+  donation: SupabaseSubscription;
+  campaign: SupabaseSubscription;
+  comment: SupabaseSubscription;
+  verification: SupabaseSubscription;
+};
+
 interface RealtimeContextType {
   isConnected: boolean;
   subscribeToCampaign: (campaignId: number) => void;
@@ -326,6 +339,6 @@ export function useRealtime() {
 // Extend window interface for TypeScript
 declare global {
   interface Window {
-    realtimeSubscriptions?: Map<number, any>;
+    realtimeSubscriptions?: Map<number, CampaignSubscriptions>;
   }
 }
