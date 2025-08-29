@@ -33,6 +33,7 @@ import {
   calculatePercentage,
   formatRelativeTime,
 } from "@/lib/utils";
+import { motion, useAnimation, useInView } from "framer-motion";
 
 interface Campaign {
   campaign_id: number;
@@ -187,27 +188,64 @@ export default function HomePage() {
     value: string | number;
     trend?: string;
   }) => (
-    <Card className="bg-white dark:bg-gray-800 shadow-sm border">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              {label}
-            </p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              {value}
-            </p>
-            {trend && (
-              <p className="text-xs text-green-600 dark:text-green-400 flex items-center">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                {trend}
+    <motion.div
+      whileHover={{
+        scale: 1.05,
+        boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+      }}
+      transition={{ type: "spring", stiffness: 300 }}
+    >
+      <Card className="bg-white dark:bg-gray-800 shadow-sm border">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                {label}
               </p>
-            )}
+              <motion.p
+                className="text-2xl font-bold text-gray-900 dark:text-white"
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3, type: "spring" }}
+              >
+                {value}
+              </motion.p>
+              {trend && (
+                <motion.p
+                  className="text-xs text-green-600 dark:text-green-400 flex items-center"
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <motion.div
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <TrendingUp className="w-3 h-3 mr-1" />
+                  </motion.div>
+                  {trend}
+                </motion.p>
+              )}
+            </div>
+            <motion.div
+              animate={{
+                rotate: [0, 5, -5, 0],
+                scale: [1, 1.1, 1],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <Icon className="w-8 h-8 text-primary opacity-80" />
+            </motion.div>
           </div>
-          <Icon className="w-8 h-8 text-primary opacity-80" />
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 
   if (loading) {
@@ -222,108 +260,297 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-purple-800">
       {/* Hero Section */}
-      <section className="fundraising-hero py-20 lg:py-32">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in-up">
-              Make a Difference Today
-            </h1>
-            <p className="text-xl sm:text-2xl mb-8 text-white/90 max-w-2xl mx-auto animate-fade-in-up animation-delay-200">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 bg-black/20"></div>
+
+        {/* Floating Elements */}
+        <motion.div
+          className="absolute top-20 left-10 w-20 h-20 bg-white/10 rounded-full"
+          animate={{
+            y: [-10, 10, -10],
+            rotate: [0, 180, 360],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <motion.div
+          className="absolute top-40 right-20 w-16 h-16 bg-pink-400/20 rounded-full"
+          animate={{
+            y: [10, -10, 10],
+            x: [-5, 5, -5],
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1,
+          }}
+        />
+        <motion.div
+          className="absolute bottom-32 left-20 w-24 h-24 bg-yellow-400/15 rounded-full"
+          animate={{
+            y: [-15, 15, -15],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2,
+          }}
+        />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="space-y-8">
+            <motion.h1
+              className="text-4xl sm:text-6xl lg:text-7xl font-bold text-white leading-tight"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.8,
+                ease: [0.6, -0.05, 0.01, 0.99],
+              }}
+            >
+              <motion.span
+                className="inline-block"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.8 }}
+              >
+                Make
+              </motion.span>{" "}
+              <motion.span
+                className="inline-block"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+              >
+                a
+              </motion.span>{" "}
+              <motion.span
+                className="inline-block bg-gradient-to-r from-yellow-400 to-pink-400 bg-clip-text text-transparent"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+              >
+                Difference
+              </motion.span>{" "}
+              <motion.span
+                className="inline-block"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.8 }}
+              >
+                Today
+              </motion.span>
+            </motion.h1>
+
+            <motion.p
+              className="text-xl sm:text-2xl mb-8 text-white/90 max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+            >
               Join thousands of people supporting causes they care about. Every
               donation counts.
-            </p>
+            </motion.p>
 
             {/* Search Bar */}
-            <form
+            <motion.form
               onSubmit={handleSearch}
-              className="max-w-2xl mx-auto mb-8 animate-fade-in-up animation-delay-400"
+              className="max-w-2xl mx-auto mb-8"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.8 }}
             >
-              <div className="relative">
+              <motion.div
+                className="relative"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
                   type="text"
                   placeholder="Search for campaigns, causes, or keywords..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-4 py-4 text-lg bg-white/90 backdrop-blur-sm border-0 rounded-full focus:bg-white focus:ring-2 focus:ring-white/50"
+                  className="pl-12 pr-4 py-4 text-lg rounded-full border-0 shadow-lg bg-white/95 backdrop-blur-sm focus:bg-white transition-colors"
                 />
                 <Button
                   type="submit"
+                  size="sm"
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-6"
                 >
                   Search
                 </Button>
-              </div>
-            </form>
+              </motion.div>
+            </motion.form>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up animation-delay-600">
+            <motion.div
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.0, duration: 0.8 }}
+            >
               <Link href="/campaigns">
-                <Button
-                  size="lg"
-                  className="bg-white text-blue-600 hover:bg-white/90 px-8"
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
-                  Browse Campaigns
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
+                  <Button
+                    size="lg"
+                    className="bg-white text-blue-600 hover:bg-white/90 px-8"
+                  >
+                    Browse Campaigns
+                    <motion.div
+                      className="ml-2"
+                      animate={{ x: [0, 5, 0] }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    >
+                      <ArrowRight className="w-5 h-5" />
+                    </motion.div>
+                  </Button>
+                </motion.div>
               </Link>
 
               {session ? (
                 <Link href="/dashboard">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="border-white text-white hover:bg-white hover:text-blue-600 px-8"
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
                   >
-                    My Dashboard
-                  </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="border-white text-white hover:bg-white hover:text-blue-600 px-8"
+                    >
+                      My Dashboard
+                    </Button>
+                  </motion.div>
                 </Link>
               ) : (
                 <Link href="/campaigns/create">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="border-white text-white hover:bg-white hover:text-blue-600 px-8"
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
                   >
-                    Start a Campaign
-                  </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="border-white text-white hover:bg-white hover:text-blue-600 px-8"
+                    >
+                      Start a Campaign
+                    </Button>
+                  </motion.div>
                 </Link>
               )}
-            </div>
+            </motion.div>
+
+            {/* Floating Heart Animation */}
+            <motion.div
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+              initial={{ scale: 0, rotate: 0 }}
+              animate={{
+                scale: [0, 1, 0],
+                rotate: [0, 180, 360],
+                y: [-50, -100, -150],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                repeatDelay: 5,
+                ease: "easeOut",
+              }}
+            >
+              <Heart
+                className="w-8 h-8 text-pink-400 opacity-60"
+                fill="currentColor"
+              />
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard
-              icon={Target}
-              label="Active Campaigns"
-              value={stats.totalCampaigns.toLocaleString()}
-              trend="+12% this month"
-            />
-            <StatCard
-              icon={DollarSign}
-              label="Total Raised"
-              value={formatCurrency(stats.totalRaised)}
-              trend="+28% this month"
-            />
-            <StatCard
-              icon={Users}
-              label="Active Donors"
-              value={stats.activeDonors.toLocaleString()}
-              trend="+15% this month"
-            />
-            <StatCard
-              icon={Heart}
-              label="Total Donations"
-              value={stats.totalDonations.toLocaleString()}
-              trend="+22% this month"
-            />
-          </div>
+      {/* Platform Statistics */}
+      <section className="py-16 bg-white dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{
+              duration: 0.8,
+              staggerChildren: 0.2,
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              <StatCard
+                icon={Target}
+                label="Active Campaigns"
+                value={stats.totalCampaigns.toLocaleString()}
+                trend="+12% this month"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              <StatCard
+                icon={DollarSign}
+                label="Total Raised"
+                value={formatCurrency(stats.totalRaised)}
+                trend="+28% this month"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+            >
+              <StatCard
+                icon={Users}
+                label="Active Donors"
+                value={stats.activeDonors.toLocaleString()}
+                trend="+15% this month"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 }}
+            >
+              <StatCard
+                icon={Heart}
+                label="Total Donations"
+                value={stats.totalDonations.toLocaleString()}
+                trend="+22% this month"
+              />
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
