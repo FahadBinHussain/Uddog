@@ -1,15 +1,22 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   DollarSign,
   Users,
@@ -18,6 +25,7 @@ import {
   Plus,
   Eye,
   Edit,
+  Trash2,
   Heart,
   MessageCircle,
   Calendar,
@@ -26,135 +34,152 @@ import {
   Clock,
   ArrowRight,
   BarChart3,
-  FileText
-} from 'lucide-react'
-import { formatCurrency, calculatePercentage, formatRelativeTime } from '@/lib/utils'
-import { useToast } from '@/hooks/use-toast'
+  FileText,
+} from "lucide-react";
+import {
+  formatCurrency,
+  calculatePercentage,
+  formatRelativeTime,
+} from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { useCampaigns } from "@/contexts/campaign-context";
 
 interface Campaign {
-  campaign_id: number
-  title: string
-  description: string
-  goalAmount: number
-  currentAmount: number
-  status: string
-  createdAt: string
-  endDate?: string
+  campaign_id: number;
+  title: string;
+  description: string;
+  goalAmount: number;
+  currentAmount: number;
+  status: string;
+  createdAt: string;
+  endDate?: string;
   _count: {
-    donations: number
-    comments: number
-  }
-  isVerified: boolean
+    donations: number;
+    comments: number;
+  };
+  isVerified: boolean;
 }
 
 interface Donation {
-  donation_id: number
-  amount: number
-  donationDate: string
-  isRecurring: boolean
+  donation_id: number;
+  amount: number;
+  donationDate: string;
+  isRecurring: boolean;
   campaign: {
-    title: string
-    campaign_id: number
-  }
+    title: string;
+    campaign_id: number;
+  };
 }
 
 interface UserStats {
-  campaigns: number
-  donationsMade: number
-  donationsReceived: number
-  totalRaised: number
-  averageRaised: number
+  campaigns: number;
+  donationsMade: number;
+  donationsReceived: number;
+  totalRaised: number;
+  averageRaised: number;
 }
 
 interface RecentActivity {
-  type: 'donation_received' | 'donation_made' | 'comment' | 'campaign_created'
-  message: string
-  date: string
-  campaignId?: number
-  amount?: number
+  type: "donation_received" | "donation_made" | "comment" | "campaign_created";
+  message: string;
+  date: string;
+  campaignId?: number;
+  amount?: number;
 }
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  const { toast } = useToast()
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { toast } = useToast();
+  const { deleteCampaign } = useCampaigns();
 
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [donations, setDonations] = useState<Donation[]>([])
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [donations, setDonations] = useState<Donation[]>([]);
   const [stats, setStats] = useState<UserStats>({
     campaigns: 0,
     donationsMade: 0,
     donationsReceived: 0,
     totalRaised: 0,
-    averageRaised: 0
-  })
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('overview')
+    averageRaised: 0,
+  });
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
-    if (status === 'loading') return
+    if (status === "loading") return;
     if (!session) {
-      router.push('/auth/signin?callbackUrl=/dashboard')
-      return
+      router.push("/auth/signin?callbackUrl=/dashboard");
+      return;
     }
-    fetchDashboardData()
-  }, [session, status, router])
+    fetchDashboardData();
+  }, [session, status, router]);
 
   const fetchDashboardData = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
 
       // Fetch user's campaigns
-      const campaignResponse = await fetch(`/api/campaigns?userId=${session?.user?.id}`)
+      const campaignResponse = await fetch(
+        `/api/campaigns?userId=${session?.user?.id}`,
+      );
       if (campaignResponse.ok) {
-        const campaignData = await campaignResponse.json()
-        setCampaigns(campaignData.campaigns || [])
+        const campaignData = await campaignResponse.json();
+        setCampaigns(campaignData.campaigns || []);
       }
 
       // Fetch user's donations
-      const donationResponse = await fetch(`/api/donations?userId=${session?.user?.id}&type=made`)
+      const donationResponse = await fetch(
+        `/api/donations?userId=${session?.user?.id}&type=made`,
+      );
       if (donationResponse.ok) {
-        const donationData = await donationResponse.json()
-        setDonations(donationData.donations || [])
+        const donationData = await donationResponse.json();
+        setDonations(donationData.donations || []);
       }
 
       // Fetch user stats
-      const statsResponse = await fetch('/api/stats/platform', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: session?.user?.id })
-      })
+      const statsResponse = await fetch("/api/stats/platform", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: session?.user?.id }),
+      });
       if (statsResponse.ok) {
-        const statsData = await statsResponse.json()
-        setStats(statsData)
+        const statsData = await statsResponse.json();
+        setStats(statsData);
       }
 
       // Fetch recent activity (you'll need to implement this endpoint)
-      const activityResponse = await fetch(`/api/users/activity?userId=${session?.user?.id}`)
+      const activityResponse = await fetch(
+        `/api/users/activity?userId=${session?.user?.id}`,
+      );
       if (activityResponse.ok) {
-        const activityData = await activityResponse.json()
-        setRecentActivity(activityData.activities || [])
+        const activityData = await activityResponse.json();
+        setRecentActivity(activityData.activities || []);
       }
-
     } catch (error) {
-      console.error('Error fetching dashboard data:', error)
+      console.error("Error fetching dashboard data:", error);
       toast({
         title: "Error",
         description: "Failed to load dashboard data. Please try again.",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const StatCard = ({ icon: Icon, title, value, subtitle, trend }: {
-    icon: React.ElementType
-    title: string
-    value: string | number
-    subtitle?: string
-    trend?: string
+  const StatCard = ({
+    icon: Icon,
+    title,
+    value,
+    subtitle,
+    trend,
+  }: {
+    icon: React.ElementType;
+    title: string;
+    value: string | number;
+    subtitle?: string;
+    trend?: string;
   }) => (
     <Card>
       <CardContent className="p-6">
@@ -176,12 +201,44 @@ export default function DashboardPage() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 
   const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
-    const progressPercentage = calculatePercentage(campaign.currentAmount, campaign.goalAmount)
-    const isActive = campaign.status === 'active'
-    const isExpired = campaign.endDate && new Date(campaign.endDate) < new Date()
+    const progressPercentage = calculatePercentage(
+      campaign.currentAmount,
+      campaign.goalAmount,
+    );
+    const isActive = campaign.status === "active";
+    const isExpired =
+      campaign.endDate && new Date(campaign.endDate) < new Date();
+
+    const handleDelete = async () => {
+      if (campaign._count.donations > 0) {
+        toast({
+          title: "Cannot Delete",
+          description:
+            "This campaign has received donations and cannot be deleted. You can pause it instead.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (
+        confirm(
+          "Are you sure you want to delete this campaign? This action cannot be undone.",
+        )
+      ) {
+        try {
+          await deleteCampaign(campaign.campaign_id);
+          // Update local state to remove the deleted campaign
+          setCampaigns((prev) =>
+            prev.filter((c) => c.campaign_id !== campaign.campaign_id),
+          );
+        } catch (error) {
+          console.error("Error deleting campaign:", error);
+        }
+      }
+    };
 
     return (
       <Card className="hover:shadow-md transition-shadow">
@@ -197,12 +254,15 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center gap-2">
               {campaign.isVerified && (
-                <Badge variant="secondary" className="text-green-700 bg-green-100">
+                <Badge
+                  variant="secondary"
+                  className="text-green-700 bg-green-100"
+                >
                   <CheckCircle className="w-3 h-3 mr-1" />
                   Verified
                 </Badge>
               )}
-              <Badge variant={isActive ? 'default' : 'secondary'}>
+              <Badge variant={isActive ? "default" : "secondary"}>
                 {campaign.status}
               </Badge>
             </div>
@@ -228,11 +288,15 @@ export default function DashboardPage() {
                 <p className="text-xs text-muted-foreground">Funded</p>
               </div>
               <div>
-                <p className="text-sm font-medium">{campaign._count.donations}</p>
+                <p className="text-sm font-medium">
+                  {campaign._count.donations}
+                </p>
                 <p className="text-xs text-muted-foreground">Donations</p>
               </div>
               <div>
-                <p className="text-sm font-medium">{campaign._count.comments}</p>
+                <p className="text-sm font-medium">
+                  {campaign._count.comments}
+                </p>
                 <p className="text-xs text-muted-foreground">Comments</p>
               </div>
             </div>
@@ -242,7 +306,8 @@ export default function DashboardPage() {
             <Alert className="mt-3">
               <Clock className="h-4 w-4" />
               <AlertDescription>
-                This campaign has expired. Consider extending the deadline or closing it.
+                This campaign has expired. Consider extending the deadline or
+                closing it.
               </AlertDescription>
             </Alert>
           )}
@@ -255,22 +320,37 @@ export default function DashboardPage() {
               View
             </Button>
           </Link>
-          <Link href={`/campaigns/${campaign.campaign_id}/edit`} className="flex-1">
+          <Link
+            href={`/campaigns/${campaign.campaign_id}/edit`}
+            className="flex-1"
+          >
             <Button variant="outline" size="sm" className="w-full">
               <Edit className="w-4 h-4 mr-2" />
               Edit
             </Button>
           </Link>
-          <Link href={`/campaigns/${campaign.campaign_id}/analytics`} className="flex-1">
+          <Link
+            href={`/campaigns/${campaign.campaign_id}/analytics`}
+            className="flex-1"
+          >
             <Button variant="outline" size="sm" className="w-full">
               <BarChart3 className="w-4 h-4 mr-2" />
               Analytics
             </Button>
           </Link>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDelete}
+            disabled={campaign._count.donations > 0}
+            className="flex-shrink-0"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
         </CardFooter>
       </Card>
-    )
-  }
+    );
+  };
 
   const DonationCard = ({ donation }: { donation: Donation }) => (
     <Card className="hover:shadow-md transition-shadow">
@@ -300,29 +380,27 @@ export default function DashboardPage() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 
   const ActivityItem = ({ activity }: { activity: RecentActivity }) => {
     const getIcon = () => {
       switch (activity.type) {
-        case 'donation_received':
-          return <Heart className="w-4 h-4 text-green-600" />
-        case 'donation_made':
-          return <DollarSign className="w-4 h-4 text-blue-600" />
-        case 'comment':
-          return <MessageCircle className="w-4 h-4 text-purple-600" />
-        case 'campaign_created':
-          return <Target className="w-4 h-4 text-orange-600" />
+        case "donation_received":
+          return <Heart className="w-4 h-4 text-green-600" />;
+        case "donation_made":
+          return <DollarSign className="w-4 h-4 text-blue-600" />;
+        case "comment":
+          return <MessageCircle className="w-4 h-4 text-purple-600" />;
+        case "campaign_created":
+          return <Target className="w-4 h-4 text-orange-600" />;
         default:
-          return <Calendar className="w-4 h-4 text-gray-600" />
+          return <Calendar className="w-4 h-4 text-gray-600" />;
       }
-    }
+    };
 
     return (
       <div className="flex items-start gap-3 p-3 border-l-2 border-gray-100 hover:border-blue-200 transition-colors">
-        <div className="mt-1">
-          {getIcon()}
-        </div>
+        <div className="mt-1">{getIcon()}</div>
         <div className="flex-1">
           <p className="text-sm">{activity.message}</p>
           <p className="text-xs text-muted-foreground">
@@ -330,8 +408,8 @@ export default function DashboardPage() {
           </p>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   if (loading) {
     return (
@@ -341,14 +419,16 @@ export default function DashboardPage() {
           <p className="text-muted-foreground">Loading dashboard...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Welcome back, {session?.user?.name}</h1>
+          <h1 className="text-3xl font-bold">
+            Welcome back, {session?.user?.name}
+          </h1>
           <p className="text-muted-foreground">
             Manage your campaigns and track your impact
           </p>
@@ -525,7 +605,9 @@ export default function DashboardPage() {
               {recentActivity.length === 0 ? (
                 <div className="text-center py-12">
                   <Calendar className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">No recent activity</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    No recent activity
+                  </h3>
                   <p className="text-muted-foreground">
                     Your activity will appear here as you use the platform
                   </p>
@@ -542,5 +624,5 @@ export default function DashboardPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
