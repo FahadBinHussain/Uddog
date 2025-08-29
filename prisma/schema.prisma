@@ -31,6 +31,9 @@ model Campaign {
   status        String
   createdAt     DateTime       @default(now())
   category      String
+  location      String?
+  endDate       DateTime?
+  images        Json?
   user_id Int
   user    User                @relation(fields: [user_id], references: [user_id])
 
