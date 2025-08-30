@@ -107,6 +107,11 @@ interface VerificationRequest {
   campaign: {
     campaign_id: number;
     title: string;
+    description: string;
+    goalAmount: number;
+    currentAmount: number;
+    status: string;
+    category: string;
     user: {
       name: string;
     };
