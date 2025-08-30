@@ -37,11 +37,34 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // Check if user should be auto-promoted to admin based on domain
+        let userRole = user.role;
+        if (process.env.ADMIN_DOMAINS) {
+          const adminDomains = process.env.ADMIN_DOMAINS.split(",").map((d) =>
+            d.trim().toLowerCase(),
+          );
+          const userDomain = user.email.split("@")[1]?.toLowerCase();
+
+          if (
+            userDomain &&
+            adminDomains.includes(userDomain) &&
+            user.role !== "admin"
+          ) {
+            // Auto-promote to admin
+            await prisma.user.update({
+              where: { user_id: user.user_id },
+              data: { role: "admin" },
+            });
+            userRole = "admin";
+            console.log(`Auto-promoted ${user.email} to admin based on domain`);
+          }
+        }
+
         return {
           id: user.user_id.toString(),
           email: user.email,
           name: user.name,
-          role: user.role,
+          role: userRole,
         };
       },
     }),
