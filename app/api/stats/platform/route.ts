@@ -5,41 +5,67 @@ export async function GET(request: NextRequest) {
   try {
     console.log("Fetching platform stats...");
 
-    // Start with basic counts only
-    const totalCampaigns = await prisma.campaign.count();
-    console.log("Total campaigns:", totalCampaigns);
+    // Get comprehensive platform statistics
+    const [
+      totalCampaigns,
+      activeCampaigns,
+      pendingCampaigns,
+      totalDonations,
+      totalRaised,
+      activeDonors,
+      verifiedCampaigns,
+      fraudReports,
+    ] = await Promise.all([
+      // Total campaigns
+      prisma.campaign.count(),
 
-    const totalDonations = await prisma.donation.count();
-    console.log("Total donations:", totalDonations);
+      // Active campaigns
+      prisma.campaign.count({
+        where: { status: "active" },
+      }),
 
-    const totalUsers = await prisma.user.count();
-    console.log("Total users:", totalUsers);
+      // Pending campaigns
+      prisma.campaign.count({
+        where: { status: "pending" },
+      }),
+
+      // Total donations
+      prisma.donation.count(),
+
+      // Total amount raised
+      prisma.donation.aggregate({
+        _sum: { amount: true },
+      }),
+
+      // Active donors (users who have made donations)
+      prisma.user.count({
+        where: {
+          donations: {
+            some: {},
+          },
+        },
+      }),
+
+      // Verified campaigns
+      prisma.verification.count({
+        where: { status: "verified" },
+      }),
+
+      // Fraud reports count
+      prisma.fraudReport.count(),
+    ]);
+
+    console.log("Platform stats calculated successfully");
 
     return NextResponse.json({
       totalCampaigns,
-      activeCampaigns: 0,
+      activeCampaigns,
       totalDonations,
-      totalRaised: 0,
-      activeDonors: totalUsers,
-      verifiedCampaigns: 0,
-      avgDonation: 0,
-      successRate: 0,
-      trends: {
-        monthly: {
-          campaigns: 0,
-          donations: 0,
-          raised: 0,
-          donors: 0,
-        },
-        weekly: {
-          campaigns: 0,
-          donations: 0,
-          raised: 0,
-          donors: 0,
-        },
-      },
-      categories: [],
-      dailyActivity: [],
+      totalRaised: totalRaised._sum.amount || 0,
+      activeDonors,
+      verifiedCampaigns,
+      pendingVerifications: pendingCampaigns,
+      fraudReports,
     });
   } catch (error) {
     console.error("Error fetching platform stats:", error);
