@@ -1,16 +1,28 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Users,
   Target,
@@ -28,85 +40,85 @@ import {
   Trash2,
   UserCheck,
   UserX,
-  MessageSquare
-} from 'lucide-react'
-import { formatCurrency, formatRelativeTime } from '@/lib/utils'
-import { useToast } from '@/hooks/use-toast'
+  MessageSquare,
+} from "lucide-react";
+import { formatCurrency, formatRelativeTime } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface PlatformStats {
-  totalCampaigns: number
-  activeCampaigns: number
-  totalDonations: number
-  totalRaised: number
-  activeDonors: number
-  verifiedCampaigns: number
-  pendingVerifications: number
-  fraudReports: number
+  totalCampaigns: number;
+  activeCampaigns: number;
+  totalDonations: number;
+  totalRaised: number;
+  activeDonors: number;
+  verifiedCampaigns: number;
+  pendingVerifications: number;
+  fraudReports: number;
 }
 
 interface Campaign {
-  campaign_id: number
-  title: string
-  description: string
-  goalAmount: number
-  currentAmount: number
-  status: string
-  createdAt: string
+  campaign_id: number;
+  title: string;
+  description: string;
+  goalAmount: number;
+  currentAmount: number;
+  status: string;
+  createdAt: string;
   user: {
-    name: string
-    email: string
-  }
-  isVerified: boolean
+    name: string;
+    email: string;
+  };
+  isVerified: boolean;
   _count: {
-    donations: number
-    fraudReports: number
-  }
+    donations: number;
+    fraudReports: number;
+  };
 }
 
 interface User {
-  user_id: number
-  name: string
-  email: string
-  role: string
-  dateJoined: string
+  user_id: number;
+  name: string;
+  email: string;
+  role: string;
+  dateJoined: string;
   _count: {
-    campaigns: number
-    donations: number
-    comments: number
-  }
+    campaigns: number;
+    donations: number;
+    comments: number;
+  };
 }
 
 interface FraudReport {
-  report_id: number
-  reason: string
-  createdAt: string
-  status: string
+  report_id: number;
+  reason: string;
+  createdAt: string;
+  status: string;
   campaign: {
-    title: string
-    campaign_id: number
-  }
+    title: string;
+    campaign_id: number;
+  };
   reporter: {
-    name: string
-  }
+    name: string;
+  };
 }
 
 interface VerificationRequest {
-  verification_id: number
+  verification_id: number;
   campaign: {
-    campaign_id: number
-    title: string
+    campaign_id: number;
+    title: string;
     user: {
-      name: string
-    }
-  }
-  status: string
-  createdAt: string
+      name: string;
+    };
+  };
+  status: string;
+  createdAt: string;
 }
 
 export default function AdminDashboard() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  const { toast } = useToast()
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { toast } = useToast();
 
   const [stats, setStats] = useState<PlatformStats>({
     totalCampaigns: 0,
@@ -116,188 +128,211 @@ export default function AdminDashboard() {
     activeDonors: 0,
     verifiedCampaigns: 0,
     pendingVerifications: 0,
-    fraudReports: 0
-  })
+    fraudReports: 0,
+  });
 
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [users, setUsers] = useState<User[]>([])
-  const [fraudReports, setFraudReports] = useState<FraudReport[]>([])
-  const [verificationRequests, setVerificationRequests] = useState<VerificationRequest[]>([])
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [fraudReports, setFraudReports] = useState<FraudReport[]>([]);
+  const [verificationRequests, setVerificationRequests] = useState<
+    VerificationRequest[]
+  >([]);
 
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('overview')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
-  const [roleFilter, setRoleFilter] = useState('')
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
 
   // Pagination states
-  const [campaignPage, setCampaignPage] = useState(1)
-  const [userPage, setUserPage] = useState(1)
-  const [reportPage, setReportPage] = useState(1)
+  const [campaignPage, setCampaignPage] = useState(1);
+  const [userPage, setUserPage] = useState(1);
+  const [reportPage, setReportPage] = useState(1);
 
   useEffect(() => {
-    if (status === 'loading') return
+    if (status === "loading") return;
     if (!session) {
-      router.push('/auth/signin?callbackUrl=/admin')
-      return
+      router.push("/auth/signin?callbackUrl=/admin");
+      return;
     }
-    if (session.user.role !== 'admin') {
-      router.push('/dashboard')
-      return
+    if (session.user.role !== "admin") {
+      router.push("/dashboard");
+      return;
     }
-    fetchDashboardData()
-  }, [session, status, router])
+    fetchDashboardData();
+  }, [session, status, router]);
 
   const fetchDashboardData = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
 
       // Fetch platform statistics
-      const statsResponse = await fetch('/api/stats/platform')
+      const statsResponse = await fetch("/api/stats/platform");
       if (statsResponse.ok) {
-        const statsData = await statsResponse.json()
-        setStats(statsData)
+        const statsData = await statsResponse.json();
+        setStats(statsData);
       }
 
       // Fetch campaigns
-      const campaignsResponse = await fetch(`/api/campaigns?page=${campaignPage}&limit=10`)
+      const campaignsResponse = await fetch(
+        `/api/campaigns?page=${campaignPage}&limit=10`,
+      );
       if (campaignsResponse.ok) {
-        const campaignsData = await campaignsResponse.json()
-        setCampaigns(campaignsData.campaigns)
+        const campaignsData = await campaignsResponse.json();
+        setCampaigns(campaignsData.campaigns);
       }
 
       // Fetch users
-      const usersResponse = await fetch(`/api/users?page=${userPage}&limit=10`)
+      const usersResponse = await fetch(`/api/users?page=${userPage}&limit=10`);
       if (usersResponse.ok) {
-        const usersData = await usersResponse.json()
-        setUsers(usersData.users)
+        const usersData = await usersResponse.json();
+        setUsers(usersData.users);
       }
 
       // Fetch fraud reports
-      const reportsResponse = await fetch(`/api/reports?page=${reportPage}&limit=10`)
+      const reportsResponse = await fetch(
+        `/api/reports?page=${reportPage}&limit=10`,
+      );
       if (reportsResponse.ok) {
-        const reportsData = await reportsResponse.json()
-        setFraudReports(reportsData.reports)
+        const reportsData = await reportsResponse.json();
+        setFraudReports(reportsData.reports);
       }
 
-      // Fetch verification requests
-      const verificationResponse = await fetch('/api/admin/verify')
+      // Fetch pending campaigns for verification
+      const verificationResponse = await fetch(
+        "/api/admin/campaigns?status=pending",
+      );
       if (verificationResponse.ok) {
-        const verificationData = await verificationResponse.json()
-        setVerificationRequests(verificationData.requests)
+        const verificationData = await verificationResponse.json();
+        setVerificationRequests(
+          verificationData.campaigns.map((campaign: any) => ({
+            verification_id: campaign.campaign_id,
+            status: "pending",
+            createdAt: campaign.createdAt,
+            campaign: campaign,
+          })),
+        );
       }
-
     } catch (error) {
-      console.error('Error fetching admin dashboard data:', error)
+      console.error("Error fetching admin dashboard data:", error);
       toast({
         title: "Error",
         description: "Failed to load dashboard data. Please try again.",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleVerifyCampaign = async (campaignId: number, approve: boolean) => {
     try {
-      const response = await fetch('/api/admin/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/campaigns", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           campaignId,
-          action: approve ? 'verify' : 'reject'
-        })
-      })
+          action: approve ? "approve" : "reject",
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to process verification')
+        throw new Error("Failed to process verification");
       }
 
       toast({
         title: "Success",
-        description: `Campaign ${approve ? 'verified' : 'rejected'} successfully.`,
-      })
+        description: `Campaign ${approve ? "approved" : "rejected"} successfully.`,
+      });
 
-      fetchDashboardData()
+      fetchDashboardData();
     } catch (error) {
-      console.error('Error processing verification:', error)
+      console.error("Error processing verification:", error);
       toast({
         title: "Error",
         description: "Failed to process verification. Please try again.",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   const handleUpdateUserRole = async (userId: number, newRole: string) => {
     try {
-      const response = await fetch('/api/users', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          role: newRole
-        })
-      })
+          role: newRole,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to update user role')
+        throw new Error("Failed to update user role");
       }
 
       toast({
         title: "Success",
         description: "User role updated successfully.",
-      })
+      });
 
-      fetchDashboardData()
+      fetchDashboardData();
     } catch (error) {
-      console.error('Error updating user role:', error)
+      console.error("Error updating user role:", error);
       toast({
         title: "Error",
         description: "Failed to update user role. Please try again.",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     }
-  }
+  };
 
-  const handleResolveReport = async (reportId: number, action: 'resolve' | 'dismiss') => {
+  const handleResolveReport = async (
+    reportId: number,
+    action: "resolve" | "dismiss",
+  ) => {
     try {
-      const response = await fetch('/api/reports', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/reports", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           reportId,
-          status: action === 'resolve' ? 'resolved' : 'dismissed'
-        })
-      })
+          status: action === "resolve" ? "resolved" : "dismissed",
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to resolve report')
+        throw new Error("Failed to resolve report");
       }
 
       toast({
         title: "Success",
-        description: `Report ${action === 'resolve' ? 'resolved' : 'dismissed'} successfully.`,
-      })
+        description: `Report ${action === "resolve" ? "resolved" : "dismissed"} successfully.`,
+      });
 
-      fetchDashboardData()
+      fetchDashboardData();
     } catch (error) {
-      console.error('Error resolving report:', error)
+      console.error("Error resolving report:", error);
       toast({
         title: "Error",
         description: "Failed to resolve report. Please try again.",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     }
-  }
+  };
 
-  const StatCard = ({ icon: Icon, title, value, subtitle, trend }: {
-    icon: React.ElementType
-    title: string
-    value: string | number
-    subtitle?: string
-    trend?: string
+  const StatCard = ({
+    icon: Icon,
+    title,
+    value,
+    subtitle,
+    trend,
+  }: {
+    icon: React.ElementType;
+    title: string;
+    value: string | number;
+    subtitle?: string;
+    trend?: string;
   }) => (
     <Card>
       <CardContent className="p-6">
@@ -308,15 +343,13 @@ export default function AdminDashboard() {
             {subtitle && (
               <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
             )}
-            {trend && (
-              <p className="text-xs text-green-600 mt-1">{trend}</p>
-            )}
+            {trend && <p className="text-xs text-green-600 mt-1">{trend}</p>}
           </div>
           <Icon className="h-8 w-8 text-muted-foreground" />
         </div>
       </CardContent>
     </Card>
-  )
+  );
 
   if (loading) {
     return (
@@ -326,7 +359,7 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground">Loading admin dashboard...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -420,22 +453,32 @@ export default function AdminDashboard() {
                 <div className="flex justify-between items-center">
                   <span>Verification Rate</span>
                   <Badge variant="outline">
-                    {stats.totalCampaigns > 0 ?
-                      Math.round((stats.verifiedCampaigns / stats.totalCampaigns) * 100) : 0}%
+                    {stats.totalCampaigns > 0
+                      ? Math.round(
+                          (stats.verifiedCampaigns / stats.totalCampaigns) *
+                            100,
+                        )
+                      : 0}
+                    %
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Average per Campaign</span>
                   <Badge variant="outline">
-                    {stats.totalCampaigns > 0 ?
-                      formatCurrency(stats.totalRaised / stats.totalCampaigns) : '$0'}
+                    {stats.totalCampaigns > 0
+                      ? formatCurrency(stats.totalRaised / stats.totalCampaigns)
+                      : "$0"}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Active Campaign Rate</span>
                   <Badge variant="outline">
-                    {stats.totalCampaigns > 0 ?
-                      Math.round((stats.activeCampaigns / stats.totalCampaigns) * 100) : 0}%
+                    {stats.totalCampaigns > 0
+                      ? Math.round(
+                          (stats.activeCampaigns / stats.totalCampaigns) * 100,
+                        )
+                      : 0}
+                    %
                   </Badge>
                 </div>
               </CardContent>
@@ -478,11 +521,20 @@ export default function AdminDashboard() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold">{campaign.title}</h3>
-                        <Badge variant={campaign.status === 'active' ? 'default' : 'secondary'}>
+                        <Badge
+                          variant={
+                            campaign.status === "active"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
                           {campaign.status}
                         </Badge>
                         {campaign.isVerified && (
-                          <Badge variant="outline" className="text-green-700 bg-green-100">
+                          <Badge
+                            variant="outline"
+                            className="text-green-700 bg-green-100"
+                          >
                             <CheckCircle className="w-3 h-3 mr-1" />
                             Verified
                           </Badge>
@@ -495,10 +547,14 @@ export default function AdminDashboard() {
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground mb-2">
-                        by {campaign.user.name} • {formatRelativeTime(campaign.createdAt)}
+                        by {campaign.user.name} •{" "}
+                        {formatRelativeTime(campaign.createdAt)}
                       </p>
                       <div className="flex items-center gap-4 text-sm">
-                        <span>{formatCurrency(campaign.currentAmount)} / {formatCurrency(campaign.goalAmount)}</span>
+                        <span>
+                          {formatCurrency(campaign.currentAmount)} /{" "}
+                          {formatCurrency(campaign.goalAmount)}
+                        </span>
                         <span>{campaign._count.donations} donations</span>
                       </div>
                     </div>
@@ -515,7 +571,9 @@ export default function AdminDashboard() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleVerifyCampaign(campaign.campaign_id, true)}
+                          onClick={() =>
+                            handleVerifyCampaign(campaign.campaign_id, true)
+                          }
                         >
                           <CheckCircle className="w-4 h-4 mr-1" />
                           Verify
@@ -564,11 +622,17 @@ export default function AdminDashboard() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold">{user.name}</h3>
-                        <Badge variant={user.role === 'admin' ? 'destructive' : 'outline'}>
+                        <Badge
+                          variant={
+                            user.role === "admin" ? "destructive" : "outline"
+                          }
+                        >
                           {user.role}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">{user.email}</p>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {user.email}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         Joined {formatRelativeTime(user.dateJoined)}
                       </p>
@@ -581,7 +645,9 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-2">
                       <Select
                         value={user.role}
-                        onValueChange={(newRole) => handleUpdateUserRole(user.user_id, newRole)}
+                        onValueChange={(newRole) =>
+                          handleUpdateUserRole(user.user_id, newRole)
+                        }
                       >
                         <SelectTrigger className="w-32">
                           <SelectValue />
@@ -608,7 +674,8 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Fraud Reports</h2>
             <Badge variant="destructive">
-              {fraudReports.filter(r => r.status === 'pending').length} Pending
+              {fraudReports.filter((r) => r.status === "pending").length}{" "}
+              Pending
             </Badge>
           </div>
 
@@ -619,22 +686,33 @@ export default function AdminDashboard() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold">{report.campaign.title}</h3>
-                        <Badge variant={report.status === 'pending' ? 'destructive' : 'outline'}>
+                        <h3 className="font-semibold">
+                          {report.campaign.title}
+                        </h3>
+                        <Badge
+                          variant={
+                            report.status === "pending"
+                              ? "destructive"
+                              : "outline"
+                          }
+                        >
                           {report.status}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mb-2">
-                        Reported by {report.reporter.name} • {formatRelativeTime(report.createdAt)}
+                        Reported by {report.reporter.name} •{" "}
+                        {formatRelativeTime(report.createdAt)}
                       </p>
                       <p className="text-sm mb-3">{report.reason}</p>
                     </div>
-                    {report.status === 'pending' && (
+                    {report.status === "pending" && (
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleResolveReport(report.report_id, 'resolve')}
+                          onClick={() =>
+                            handleResolveReport(report.report_id, "resolve")
+                          }
                         >
                           <CheckCircle className="w-4 h-4 mr-1" />
                           Resolve
@@ -642,7 +720,9 @@ export default function AdminDashboard() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleResolveReport(report.report_id, 'dismiss')}
+                          onClick={() =>
+                            handleResolveReport(report.report_id, "dismiss")
+                          }
                         >
                           <XCircle className="w-4 h-4 mr-1" />
                           Dismiss
@@ -660,7 +740,11 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Campaign Verifications</h2>
             <Badge variant="outline">
-              {verificationRequests.filter(r => r.status === 'pending').length} Pending
+              {
+                verificationRequests.filter((r) => r.status === "pending")
+                  .length
+              }{" "}
+              Pending
             </Badge>
           </div>
 
@@ -671,33 +755,60 @@ export default function AdminDashboard() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold">{request.campaign.title}</h3>
-                        <Badge variant={request.status === 'pending' ? 'secondary' : 'outline'}>
+                        <h3 className="font-semibold">
+                          {request.campaign.title}
+                        </h3>
+                        <Badge
+                          variant={
+                            request.status === "pending"
+                              ? "secondary"
+                              : "outline"
+                          }
+                        >
                           {request.status}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mb-2">
-                        by {request.campaign.user.name} • {formatRelativeTime(request.createdAt)}
+                        by {request.campaign.user.name} •{" "}
+                        {formatRelativeTime(request.createdAt)}
+                      </p>
+                      <p className="text-sm text-gray-600 mb-2">
+                        Goal: {formatCurrency(request.campaign.goalAmount)} •
+                        Category: {request.campaign.category}
+                      </p>
+                      <p className="text-sm text-gray-500 line-clamp-2">
+                        {request.campaign.description.substring(0, 150)}...
                       </p>
                     </div>
-                    {request.status === 'pending' && (
+                    {request.status === "pending" && (
                       <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm">
                           <Eye className="w-4 h-4 mr-1" />
                           Review
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="default"
                           size="sm"
-                          onClick={() => handleVerifyCampaign(request.campaign.campaign_id, true)}
+                          className="bg-green-600 hover:bg-green-700"
+                          onClick={() =>
+                            handleVerifyCampaign(
+                              request.campaign.campaign_id,
+                              true,
+                            )
+                          }
                         >
                           <CheckCircle className="w-4 h-4 mr-1" />
                           Approve
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="destructive"
                           size="sm"
-                          onClick={() => handleVerifyCampaign(request.campaign.campaign_id, false)}
+                          onClick={() =>
+                            handleVerifyCampaign(
+                              request.campaign.campaign_id,
+                              false,
+                            )
+                          }
                         >
                           <XCircle className="w-4 h-4 mr-1" />
                           Reject
@@ -712,5 +823,5 @@ export default function AdminDashboard() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

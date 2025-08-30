@@ -236,7 +236,7 @@ export async function POST(request: NextRequest) {
           description: description.trim(),
           goalAmount: parseFloat(goalAmount),
           currentAmount: 0,
-          status: CAMPAIGN_STATUSES.ACTIVE,
+          status: CAMPAIGN_STATUSES.PENDING,
           user_id: userId,
           category: category || "other",
           location: location || null,
@@ -279,7 +279,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        message: "Campaign created successfully",
+        message:
+          "Campaign submitted for review. It will be visible once approved by our team.",
         campaign: {
           ...campaign,
           isVerified: false,
