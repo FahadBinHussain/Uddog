@@ -509,7 +509,7 @@ export default function AdminDashboard() {
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="paused">Paused</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
@@ -610,7 +610,7 @@ export default function AdminDashboard() {
                   <SelectValue placeholder="All Roles" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Roles</SelectItem>
+                  <SelectItem value="all">All Roles</SelectItem>
                   <SelectItem value="user">User</SelectItem>
                   <SelectItem value="creator">Creator</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
@@ -658,7 +658,7 @@ export default function AdminDashboard() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="user">User</SelectItem>
+                          <SelectItem value="donor">Donor</SelectItem>
                           <SelectItem value="creator">Creator</SelectItem>
                           <SelectItem value="admin">Admin</SelectItem>
                         </SelectContent>

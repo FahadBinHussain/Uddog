@@ -1,14 +1,27 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
+import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import {
   Search,
   Filter,
@@ -22,131 +35,173 @@ import {
   SlidersHorizontal,
   Grid,
   List,
-  Star
-} from 'lucide-react'
-import Link from 'next/link'
-import { formatCurrency, calculatePercentage, formatRelativeTime, cn } from '@/lib/utils'
-import { useCampaigns } from '@/contexts/campaign-context'
+  Star,
+} from "lucide-react";
+import Link from "next/link";
+import {
+  formatCurrency,
+  calculatePercentage,
+  formatRelativeTime,
+  cn,
+} from "@/lib/utils";
+import { useCampaigns } from "@/contexts/campaign-context";
 
 interface Campaign {
-  campaign_id: number
-  title: string
-  description: string
-  goalAmount: number
-  currentAmount: number
-  status: string
-  createdAt: string
-  category?: string
-  location?: string
+  campaign_id: number;
+  title: string;
+  description: string;
+  goalAmount: number;
+  currentAmount: number;
+  status: string;
+  createdAt: string;
+  category?: string;
+  location?: string;
   user: {
-    name: string
-  }
+    name: string;
+  };
   _count?: {
-    donations: number
-  }
-  isVerified?: boolean
-  images?: string[]
+    donations: number;
+  };
+  isVerified?: boolean;
+  images?: string[];
 }
 
 export default function CampaignsPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { state, fetchCampaigns, setSearchQuery, setFilters, resetCampaigns } = useCampaigns()
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { state, fetchCampaigns, setSearchQuery, setFilters, resetCampaigns } =
+    useCampaigns();
 
-  const [searchInput, setSearchInput] = useState('')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [showFilters, setShowFilters] = useState(false)
-  const [sortBy, setSortBy] = useState('recent')
+  const [searchInput, setSearchInput] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState("recent");
 
   // Get URL parameters
-  const initialSearch = searchParams.get('search') || ''
-  const initialCategory = searchParams.get('category') || ''
-  const initialStatus = searchParams.get('status') || ''
-  const initialLocation = searchParams.get('location') || ''
-  const initialVerified = searchParams.get('verified')
+  const initialSearch = searchParams.get("search") || "";
+  const initialCategory = searchParams.get("category") || "";
+  const initialStatus = searchParams.get("status") || "";
+  const initialLocation = searchParams.get("location") || "";
+  const initialVerified = searchParams.get("verified");
 
   useEffect(() => {
     // Initialize from URL parameters
     if (initialSearch) {
-      setSearchInput(initialSearch)
-      setSearchQuery(initialSearch)
+      setSearchInput(initialSearch);
+      setSearchQuery(initialSearch);
     }
 
     setFilters({
       category: initialCategory,
       status: initialStatus,
       location: initialLocation,
-      verified: initialVerified === 'true' ? true : initialVerified === 'false' ? false : null
-    })
+      verified:
+        initialVerified === "true"
+          ? true
+          : initialVerified === "false"
+            ? false
+            : null,
+    });
 
     // Fetch initial campaigns
-    fetchCampaigns({ reset: true })
-  }, [initialSearch, initialCategory, initialStatus, initialLocation, initialVerified])
+    fetchCampaigns({ reset: true });
+  }, [
+    initialSearch,
+    initialCategory,
+    initialStatus,
+    initialLocation,
+    initialVerified,
+  ]);
 
-  const handleSearch = useCallback((e: React.FormEvent) => {
-    e.preventDefault()
-    setSearchQuery(searchInput)
-    updateURL({ search: searchInput })
-    fetchCampaigns({ reset: true })
-  }, [searchInput, setSearchQuery, fetchCampaigns])
+  const handleSearch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      setSearchQuery(searchInput);
+      updateURL({ search: searchInput });
+      fetchCampaigns({ reset: true });
+    },
+    [searchInput, setSearchQuery, fetchCampaigns],
+  );
 
-  const handleFilterChange = useCallback((key: string, value: any) => {
-    const newFilters = { [key]: value }
-    setFilters(newFilters)
-    updateURL(newFilters)
-    fetchCampaigns({ reset: true })
-  }, [setFilters, fetchCampaigns])
+  const handleFilterChange = useCallback(
+    (key: string, value: any) => {
+      const newFilters = { [key]: value };
+      setFilters(newFilters);
+      updateURL(newFilters);
+      fetchCampaigns({ reset: true });
+    },
+    [setFilters, fetchCampaigns],
+  );
 
-  const handleSortChange = useCallback((value: string) => {
-    setSortBy(value)
-    // In a real implementation, you would pass sort to fetchCampaigns
-    fetchCampaigns({ reset: true })
-  }, [fetchCampaigns])
+  const handleSortChange = useCallback(
+    (value: string) => {
+      setSortBy(value);
+      // In a real implementation, you would pass sort to fetchCampaigns
+      fetchCampaigns({ reset: true });
+    },
+    [fetchCampaigns],
+  );
 
-  const updateURL = useCallback((params: Record<string, any>) => {
-    const url = new URL(window.location.href)
-    Object.entries(params).forEach(([key, value]) => {
-      if (value && value !== '') {
-        url.searchParams.set(key, value.toString())
-      } else {
-        url.searchParams.delete(key)
-      }
-    })
-    router.push(url.pathname + url.search)
-  }, [router])
+  const updateURL = useCallback(
+    (params: Record<string, any>) => {
+      const url = new URL(window.location.href);
+      Object.entries(params).forEach(([key, value]) => {
+        if (value && value !== "") {
+          url.searchParams.set(key, value.toString());
+        } else {
+          url.searchParams.delete(key);
+        }
+      });
+      router.push(url.pathname + url.search);
+    },
+    [router],
+  );
 
   const loadMoreCampaigns = useCallback(() => {
     if (state.pagination.hasMore && !state.loading) {
-      fetchCampaigns({ page: state.pagination.page + 1 })
+      fetchCampaigns({ page: state.pagination.page + 1 });
     }
-  }, [state.pagination.hasMore, state.loading, state.pagination.page, fetchCampaigns])
+  }, [
+    state.pagination.hasMore,
+    state.loading,
+    state.pagination.page,
+    fetchCampaigns,
+  ]);
 
   const clearFilters = useCallback(() => {
-    resetCampaigns()
-    setSearchInput('')
-    setSearchQuery('')
+    resetCampaigns();
+    setSearchInput("");
+    setSearchQuery("");
     setFilters({
-      category: '',
-      status: '',
-      location: '',
-      verified: null
-    })
-    router.push('/campaigns')
-  }, [resetCampaigns, setSearchQuery, setFilters, router])
+      category: "",
+      status: "",
+      location: "",
+      verified: null,
+    });
+    router.push("/campaigns");
+  }, [resetCampaigns, setSearchQuery, setFilters, router]);
 
-  const CampaignCard = ({ campaign, viewMode }: { campaign: Campaign; viewMode: 'grid' | 'list' }) => {
-    const progressPercentage = calculatePercentage(campaign.currentAmount, campaign.goalAmount)
-    const isGridView = viewMode === 'grid'
+  const CampaignCard = ({
+    campaign,
+    viewMode,
+  }: {
+    campaign: Campaign;
+    viewMode: "grid" | "list";
+  }) => {
+    const progressPercentage = calculatePercentage(
+      campaign.currentAmount,
+      campaign.goalAmount,
+    );
+    const isGridView = viewMode === "grid";
 
     return (
-      <Card className={cn(
-        "campaign-card hover:shadow-lg transition-all duration-300 group",
-        !isGridView && "flex flex-row"
-      )}>
-        <div className={cn(
-          "relative",
-          isGridView ? "h-48" : "w-48 h-32"
-        )}>
+      <Card
+        className={cn(
+          "campaign-card hover:shadow-lg transition-all duration-300 group",
+          !isGridView && "flex flex-row",
+        )}
+      >
+        <div className={cn("relative", isGridView ? "h-48" : "w-48 h-32")}>
           {campaign.images && campaign.images.length > 0 ? (
             <img
               src={campaign.images[0]}
@@ -154,10 +209,12 @@ export default function CampaignsPage() {
               className="w-full h-full object-cover rounded-t-lg"
             />
           ) : (
-            <div className={cn(
-              "w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center",
-              isGridView ? "rounded-t-lg" : "rounded-l-lg"
-            )}>
+            <div
+              className={cn(
+                "w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center",
+                isGridView ? "rounded-t-lg" : "rounded-l-lg",
+              )}
+            >
               <Users className="w-12 h-12 text-gray-400" />
             </div>
           )}
@@ -180,16 +237,20 @@ export default function CampaignsPage() {
           <CardHeader className={cn(!isGridView && "pb-2")}>
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <CardTitle className={cn(
-                  "font-semibold line-clamp-2 group-hover:text-primary transition-colors",
-                  isGridView ? "text-lg" : "text-base"
-                )}>
+                <CardTitle
+                  className={cn(
+                    "font-semibold line-clamp-2 group-hover:text-primary transition-colors",
+                    isGridView ? "text-lg" : "text-base",
+                  )}
+                >
                   {campaign.title}
                 </CardTitle>
-                <CardDescription className={cn(
-                  "text-muted-foreground mt-1",
-                  isGridView ? "text-sm" : "text-xs"
-                )}>
+                <CardDescription
+                  className={cn(
+                    "text-muted-foreground mt-1",
+                    isGridView ? "text-sm" : "text-xs",
+                  )}
+                >
                   by {campaign.user.name}
                 </CardDescription>
               </div>
@@ -197,10 +258,12 @@ export default function CampaignsPage() {
           </CardHeader>
 
           <CardContent className={cn("space-y-3", !isGridView && "py-2")}>
-            <p className={cn(
-              "text-muted-foreground line-clamp-3",
-              isGridView ? "text-sm" : "text-xs"
-            )}>
+            <p
+              className={cn(
+                "text-muted-foreground line-clamp-3",
+                isGridView ? "text-sm" : "text-xs",
+              )}
+            >
               {campaign.description}
             </p>
 
@@ -212,10 +275,12 @@ export default function CampaignsPage() {
             )}
 
             <div className="space-y-2">
-              <div className={cn(
-                "flex justify-between",
-                isGridView ? "text-sm" : "text-xs"
-              )}>
+              <div
+                className={cn(
+                  "flex justify-between",
+                  isGridView ? "text-sm" : "text-xs",
+                )}
+              >
                 <span className="font-medium">
                   {formatCurrency(campaign.currentAmount)}
                 </span>
@@ -226,13 +291,18 @@ export default function CampaignsPage() {
 
               <Progress
                 value={progressPercentage}
-                className={cn("h-2", progressPercentage > 75 && "progress-animated")}
+                className={cn(
+                  "h-2",
+                  progressPercentage > 75 && "progress-animated",
+                )}
               />
 
-              <div className={cn(
-                "flex justify-between items-center text-muted-foreground",
-                isGridView ? "text-xs" : "text-[10px]"
-              )}>
+              <div
+                className={cn(
+                  "flex justify-between items-center text-muted-foreground",
+                  isGridView ? "text-xs" : "text-[10px]",
+                )}
+              >
                 <span>{progressPercentage}% funded</span>
                 <div className="flex items-center space-x-3">
                   <span className="flex items-center">
@@ -249,7 +319,10 @@ export default function CampaignsPage() {
           </CardContent>
 
           <CardFooter className={cn("pt-0", !isGridView && "pb-2")}>
-            <Link href={`/campaigns/${campaign.campaign_id}`} className="w-full">
+            <Link
+              href={`/campaigns/${campaign.campaign_id}`}
+              className="w-full"
+            >
               <Button
                 className="w-full group-hover:bg-primary/90 transition-colors"
                 size={isGridView ? "default" : "sm"}
@@ -261,13 +334,21 @@ export default function CampaignsPage() {
           </CardFooter>
         </div>
       </Card>
-    )
-  }
+    );
+  };
 
   const categories = [
-    'Medical', 'Education', 'Emergency', 'Community', 'Animals',
-    'Environment', 'Sports', 'Arts', 'Technology', 'Other'
-  ]
+    "Medical",
+    "Education",
+    "Emergency",
+    "Community",
+    "Animals",
+    "Environment",
+    "Sports",
+    "Arts",
+    "Technology",
+    "Other",
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -279,7 +360,8 @@ export default function CampaignsPage() {
               Browse Campaigns
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Discover amazing causes and make a difference in communities around the world
+              Discover amazing causes and make a difference in communities
+              around the world
             </p>
           </div>
 
@@ -309,30 +391,43 @@ export default function CampaignsPage() {
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
               <DollarSign className="w-8 h-8 text-blue-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                {formatCurrency(state.campaigns.reduce((sum, c) => sum + c.currentAmount, 0))}
+                {formatCurrency(
+                  state.campaigns.reduce((sum, c) => sum + c.currentAmount, 0),
+                )}
               </div>
-              <div className="text-sm text-blue-700 dark:text-blue-300">Total Raised</div>
+              <div className="text-sm text-blue-700 dark:text-blue-300">
+                Total Raised
+              </div>
             </div>
             <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
               <TrendingUp className="w-8 h-8 text-green-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-green-900 dark:text-green-100">
-                {state.campaigns.filter(c => c.status === 'active').length}
+                {state.campaigns.filter((c) => c.status === "active").length}
               </div>
-              <div className="text-sm text-green-700 dark:text-green-300">Active Campaigns</div>
+              <div className="text-sm text-green-700 dark:text-green-300">
+                Active Campaigns
+              </div>
             </div>
             <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
               <Users className="w-8 h-8 text-purple-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">
-                {state.campaigns.reduce((sum, c) => sum + (c._count?.donations || 0), 0)}
+                {state.campaigns.reduce(
+                  (sum, c) => sum + (c._count?.donations || 0),
+                  0,
+                )}
               </div>
-              <div className="text-sm text-purple-700 dark:text-purple-300">Total Donations</div>
+              <div className="text-sm text-purple-700 dark:text-purple-300">
+                Total Donations
+              </div>
             </div>
             <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 text-center">
               <CheckCircle className="w-8 h-8 text-orange-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-orange-900 dark:text-orange-100">
-                {state.campaigns.filter(c => c.isVerified).length}
+                {state.campaigns.filter((c) => c.isVerified).length}
               </div>
-              <div className="text-sm text-orange-700 dark:text-orange-300">Verified Campaigns</div>
+              <div className="text-sm text-orange-700 dark:text-orange-300">
+                Verified Campaigns
+              </div>
             </div>
           </div>
         </div>
@@ -354,18 +449,24 @@ export default function CampaignsPage() {
               </Button>
 
               {/* Quick filter chips */}
-              {(state.searchQuery || state.filters.category || state.filters.verified !== null) && (
+              {(state.searchQuery ||
+                state.filters.category ||
+                state.filters.verified !== null) && (
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-500">Active filters:</span>
                   {state.searchQuery && (
-                    <Badge variant="secondary">Search: {state.searchQuery}</Badge>
+                    <Badge variant="secondary">
+                      Search: {state.searchQuery}
+                    </Badge>
                   )}
                   {state.filters.category && (
-                    <Badge variant="secondary">Category: {state.filters.category}</Badge>
+                    <Badge variant="secondary">
+                      Category: {state.filters.category}
+                    </Badge>
                   )}
                   {state.filters.verified !== null && (
                     <Badge variant="secondary">
-                      {state.filters.verified ? 'Verified' : 'Unverified'}
+                      {state.filters.verified ? "Verified" : "Unverified"}
                     </Badge>
                   )}
                   <Button
@@ -396,17 +497,17 @@ export default function CampaignsPage() {
 
               <div className="flex items-center border rounded-md">
                 <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  variant={viewMode === "grid" ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setViewMode('grid')}
+                  onClick={() => setViewMode("grid")}
                   className="rounded-r-none"
                 >
                   <Grid className="w-4 h-4" />
                 </Button>
                 <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  variant={viewMode === "list" ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setViewMode('list')}
+                  onClick={() => setViewMode("list")}
                   className="rounded-l-none"
                 >
                   <List className="w-4 h-4" />
@@ -422,14 +523,16 @@ export default function CampaignsPage() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Select
                   value={state.filters.category}
-                  onValueChange={(value) => handleFilterChange('category', value)}
+                  onValueChange={(value) =>
+                    handleFilterChange("category", value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Categories</SelectItem>
-                    {categories.map(category => (
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((category) => (
                       <SelectItem key={category} value={category.toLowerCase()}>
                         {category}
                       </SelectItem>
@@ -439,13 +542,13 @@ export default function CampaignsPage() {
 
                 <Select
                   value={state.filters.status}
-                  onValueChange={(value) => handleFilterChange('status', value)}
+                  onValueChange={(value) => handleFilterChange("status", value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="paused">Paused</SelectItem>
@@ -453,16 +556,19 @@ export default function CampaignsPage() {
                 </Select>
 
                 <Select
-                  value={state.filters.verified?.toString() || ''}
-                  onValueChange={(value) => handleFilterChange('verified',
-                    value === '' ? null : value === 'true'
-                  )}
+                  value={state.filters.verified?.toString() || ""}
+                  onValueChange={(value) =>
+                    handleFilterChange(
+                      "verified",
+                      value === "" ? null : value === "true",
+                    )
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Verification Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Campaigns</SelectItem>
+                    <SelectItem value="all">All Campaigns</SelectItem>
                     <SelectItem value="true">Verified Only</SelectItem>
                     <SelectItem value="false">Unverified Only</SelectItem>
                   </SelectContent>
@@ -471,7 +577,9 @@ export default function CampaignsPage() {
                 <Input
                   placeholder="Location"
                   value={state.filters.location}
-                  onChange={(e) => handleFilterChange('location', e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("location", e.target.value)
+                  }
                 />
               </div>
             </>
@@ -482,7 +590,9 @@ export default function CampaignsPage() {
         {state.loading && state.campaigns.length === 0 ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Loading campaigns...</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              Loading campaigns...
+            </p>
           </div>
         ) : state.error ? (
           <div className="text-center py-12">
@@ -500,16 +610,15 @@ export default function CampaignsPage() {
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               Try adjusting your search criteria or browse all campaigns
             </p>
-            <Button onClick={clearFilters}>
-              Clear Filters
-            </Button>
+            <Button onClick={clearFilters}>Clear Filters</Button>
           </div>
         ) : (
           <div className="space-y-6">
             {/* Results count */}
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Showing {state.campaigns.length} of {state.pagination.total} campaigns
+                Showing {state.campaigns.length} of {state.pagination.total}{" "}
+                campaigns
               </p>
               <Link href="/campaigns/create">
                 <Button>
@@ -520,11 +629,13 @@ export default function CampaignsPage() {
             </div>
 
             {/* Campaign Grid/List */}
-            <div className={cn(
-              viewMode === 'grid'
-                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                : "space-y-4"
-            )}>
+            <div
+              className={cn(
+                viewMode === "grid"
+                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                  : "space-y-4",
+              )}
+            >
               {state.campaigns.map((campaign) => (
                 <CampaignCard
                   key={campaign.campaign_id}
@@ -548,7 +659,7 @@ export default function CampaignsPage() {
                       Loading...
                     </>
                   ) : (
-                    'Load More Campaigns'
+                    "Load More Campaigns"
                   )}
                 </Button>
               </div>
@@ -557,5 +668,5 @@ export default function CampaignsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

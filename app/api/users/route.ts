@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Role filter
-    if (role) {
+    if (role && role !== "all") {
       where.role = role;
     }
 

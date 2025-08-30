@@ -32,11 +32,15 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    if (category) {
+    if (category && category !== "all") {
       where.category = category;
     }
 
-    if (status && Object.values(CAMPAIGN_STATUSES).includes(status as any)) {
+    if (
+      status &&
+      status !== "all" &&
+      Object.values(CAMPAIGN_STATUSES).includes(status as any)
+    ) {
       where.status = status;
     }
 

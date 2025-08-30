@@ -180,6 +180,7 @@ export async function GET(request: NextRequest) {
 
     if (
       status &&
+      status !== "all" &&
       Object.values(FRAUD_REPORT_STATUSES).includes(status as any)
     ) {
       where.status = status;
