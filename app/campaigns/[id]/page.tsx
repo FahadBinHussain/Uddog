@@ -870,7 +870,7 @@ export default function CampaignPage() {
               <DialogTitle>Complete Your Donation</DialogTitle>
             </DialogHeader>
             {clientSecret && (
-              <StripeProvider>
+              <StripeProvider clientSecret={clientSecret}>
                 <PaymentForm
                   clientSecret={clientSecret}
                   amount={Math.round(parseFloat(donationAmount || "0") * 100)}
