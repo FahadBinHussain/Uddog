@@ -158,6 +158,11 @@ export async function POST(request: NextRequest) {
             isRecurring: true,
             campaign_id: campaignId,
             donor_id: userId,
+            status: "pending",
+            stripeSubscriptionId: subscription.id,
+            stripePaymentIntentId: (subscription.latest_invoice as any)
+              ?.payment_intent?.id,
+            donationDate: new Date(),
           },
           include: {
             campaign: {
@@ -172,15 +177,7 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        // Update campaign amount
-        await prisma.campaign.update({
-          where: { campaign_id: campaignId },
-          data: {
-            currentAmount: {
-              increment: amount,
-            },
-          },
-        });
+        // Don't update campaign amount here - will be done in webhook when payment succeeds
 
         // Create recurring donation record
         const recurringDonation = {
@@ -232,6 +229,12 @@ export async function POST(request: NextRequest) {
             isRecurring: false,
             campaign_id: campaignId,
             donor_id: userId,
+            status:
+              paymentIntent.status === "succeeded" ? "completed" : "pending",
+            stripePaymentIntentId: paymentIntent.id,
+            donationDate: new Date(),
+            completedAt:
+              paymentIntent.status === "succeeded" ? new Date() : null,
           },
           include: {
             campaign: {
