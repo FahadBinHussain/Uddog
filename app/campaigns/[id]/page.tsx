@@ -45,6 +45,7 @@ import {
   Award,
   FileText,
   Send,
+  Loader2,
 } from "lucide-react";
 import {
   formatCurrency,
@@ -135,6 +136,7 @@ export default function CampaignPage() {
   const [activeTab, setActiveTab] = useState("story");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const campaignId = Array.isArray(params.id) ? params.id[0] : params.id;
 
@@ -144,9 +146,14 @@ export default function CampaignPage() {
     }
   }, [campaignId]);
 
-  const fetchCampaign = async () => {
+  const fetchCampaign = async (showRefreshIndicator = false) => {
     try {
-      setLoading(true);
+      if (showRefreshIndicator) {
+        setIsRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
       const response = await fetch(`/api/campaigns/${campaignId}`);
 
       if (!response.ok) {
@@ -162,9 +169,12 @@ export default function CampaignPage() {
         description: "Failed to load campaign. Please try again.",
         variant: "destructive",
       });
-      router.push("/campaigns");
+      if (!showRefreshIndicator) {
+        router.push("/campaigns");
+      }
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -221,16 +231,52 @@ export default function CampaignPage() {
     }
   };
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = async () => {
+    const donatedAmount = parseFloat(donationAmount || "0");
+
+    // Optimistic update - immediately update UI
+    if (campaign) {
+      setCampaign({
+        ...campaign,
+        currentAmount: campaign.currentAmount + donatedAmount,
+        donations: [
+          ...campaign.donations,
+          {
+            donation_id: Date.now(), // Temporary ID
+            amount: donatedAmount,
+            donationDate: new Date().toISOString(),
+            isAnonymous: false,
+            user: { name: "You" },
+          },
+        ],
+      });
+    }
+
     setShowPaymentModal(false);
     setClientSecret(null);
     setDonationAmount("");
-    fetchCampaign(); // Refresh campaign data
+
     toast({
       title: "Thank you!",
       description: "Your donation has been processed successfully.",
       variant: "success",
     });
+
+    // Poll for updated data with delays to allow webhook processing
+    const pollForUpdates = async (attempts = 0) => {
+      const maxAttempts = 5;
+      const delays = [1000, 2000, 3000, 5000, 8000]; // Increasing delays
+
+      if (attempts < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, delays[attempts]));
+        await fetchCampaign(true); // Show refresh indicator
+
+        // Continue polling
+        setTimeout(() => pollForUpdates(attempts + 1), 0);
+      }
+    };
+
+    pollForUpdates();
   };
 
   const handlePaymentCancel = () => {
@@ -673,11 +719,17 @@ export default function CampaignPage() {
             <Card>
               <CardHeader>
                 <div className="space-y-2">
-                  <div className="text-2xl font-bold">
-                    {formatCurrency(campaign.currentAmount)}
+                  <div className="flex items-center gap-2">
+                    <div className="text-2xl font-bold">
+                      {formatCurrency(campaign.currentAmount)}
+                    </div>
+                    {isRefreshing && (
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    )}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     raised of {formatCurrency(campaign.goalAmount)} goal
+                    {isRefreshing && " • Updating..."}
                   </div>
                 </div>
               </CardHeader>
