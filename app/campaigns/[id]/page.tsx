@@ -245,7 +245,7 @@ export default function CampaignPage() {
             donation_id: Date.now(), // Temporary ID
             amount: donatedAmount,
             donationDate: new Date().toISOString(),
-            isAnonymous: false,
+            isRecurring: false,
             user: { name: "You" },
           },
         ],
