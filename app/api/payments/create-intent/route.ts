@@ -139,6 +139,7 @@ export async function POST(request: NextRequest) {
         metadata: {
           campaignId: campaignId.toString(),
           userId: userId.toString(),
+          type: "one_time_donation",
           campaignTitle: campaign.title,
           donorName: user.name,
         },
@@ -155,32 +156,45 @@ export async function POST(request: NextRequest) {
     }
 
     // Create donation record in database
+    console.log(
+      `Creating donation record: campaignId=${campaignId}, userId=${userId}, amount=${amount / 100}`,
+    );
+
     try {
-      await prisma.donation.create({
-        data: {
-          amount: amount / 100, // Convert from cents to dollars
-          campaign_id: campaignId,
-          donor_id: userId,
-          status: "pending",
-          stripePaymentIntentId: paymentIntent.id,
-          donationDate: new Date(),
-          isRecurring: false,
-          isAnonymous: false,
-        },
+      const donationData = {
+        amount: amount / 100, // Convert from cents to dollars
+        campaign_id: campaignId,
+        donor_id: userId,
+        status: "pending",
+        stripePaymentIntentId: paymentIntent.id,
+        donationDate: new Date(),
+        isRecurring: false,
+        isAnonymous: false,
+      };
+
+      console.log("Donation data:", JSON.stringify(donationData, null, 2));
+
+      const donation = await prisma.donation.create({
+        data: donationData,
       });
 
       console.log(
-        `Donation record created for payment intent: ${paymentIntent.id}`,
+        `✅ Donation record created successfully: ${donation.donation_id} for payment intent: ${paymentIntent.id}`,
       );
     } catch (dbError) {
-      console.error("Error creating donation record:", dbError);
+      console.error("❌ Error creating donation record:", dbError);
+      console.error("Database error details:", {
+        name: dbError instanceof Error ? dbError.name : "Unknown",
+        message: dbError instanceof Error ? dbError.message : String(dbError),
+        stack: dbError instanceof Error ? dbError.stack : "No stack trace",
+      });
       // Continue with payment intent creation even if DB fails
       // The webhook will handle it as a fallback
     }
 
     // Log payment intent creation
     console.log(
-      `Payment intent created: ${paymentIntent.id} for campaign: ${campaign.title}`,
+      `✅ Payment intent created: ${paymentIntent.id} for campaign: ${campaign.title}, amount: $${amount / 100}`,
     );
 
     return NextResponse.json({
