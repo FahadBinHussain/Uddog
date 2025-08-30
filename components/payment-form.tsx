@@ -55,8 +55,14 @@ export function PaymentForm({
       });
 
       if (stripeError) {
-        if (stripeError.type === "card_error" || stripeError.type === "validation_error") {
-          setError(stripeError.message || "Payment failed. Please check your card details.");
+        if (
+          stripeError.type === "card_error" ||
+          stripeError.type === "validation_error"
+        ) {
+          setError(
+            stripeError.message ||
+              "Payment failed. Please check your card details.",
+          );
         } else {
           setError("An unexpected error occurred. Please try again.");
         }
@@ -93,45 +99,54 @@ export function PaymentForm({
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CreditCard className="h-5 w-5" />
-          Complete Your Donation
-        </CardTitle>
-        <div className="text-sm text-muted-foreground">
-          <p>Amount: <span className="font-semibold">${(amount / 100).toFixed(2)}</span></p>
-          <p>Campaign: <span className="font-semibold">{campaignTitle}</span></p>
+    <div className="w-full max-w-md mx-auto">
+      <div className="space-y-4">
+        <div className="text-center pb-4 border-b">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <CreditCard className="h-5 w-5" />
+            <h3 className="text-lg font-semibold">Complete Your Donation</h3>
+          </div>
+          <div className="text-sm text-muted-foreground space-y-1">
+            <p>
+              Amount:{" "}
+              <span className="font-semibold">
+                ${(amount / 100).toFixed(2)}
+              </span>
+            </p>
+            <p className="truncate">
+              Campaign: <span className="font-semibold">{campaignTitle}</span>
+            </p>
+          </div>
         </div>
-      </CardHeader>
-      <CardContent>
+
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="border rounded-md p-3">
+          <div className="border rounded-md p-3 min-h-[200px]">
             <PaymentElement
               options={{
-                layout: "tabs",
+                layout: "accordion",
               }}
             />
           </div>
 
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="text-sm">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
             <Shield className="h-3 w-3" />
             <span>Your payment information is secure and encrypted</span>
           </div>
 
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
               disabled={isProcessing}
               className="flex-1"
+              size="sm"
             >
               Cancel
             </Button>
@@ -139,6 +154,7 @@ export function PaymentForm({
               type="submit"
               disabled={!stripe || isProcessing}
               className="flex-1"
+              size="sm"
             >
               {isProcessing ? (
                 <>
@@ -151,7 +167,7 @@ export function PaymentForm({
             </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

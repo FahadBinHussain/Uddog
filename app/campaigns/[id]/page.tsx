@@ -865,21 +865,27 @@ export default function CampaignPage() {
 
         {/* Payment Modal */}
         <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Complete Your Donation</DialogTitle>
-            </DialogHeader>
-            {clientSecret && (
-              <StripeProvider clientSecret={clientSecret}>
-                <PaymentForm
-                  clientSecret={clientSecret}
-                  amount={Math.round(parseFloat(donationAmount || "0") * 100)}
-                  campaignTitle={campaign?.title || "Unknown Campaign"}
-                  onSuccess={handlePaymentSuccess}
-                  onCancel={handlePaymentCancel}
-                />
-              </StripeProvider>
-            )}
+          <DialogContent className="sm:max-w-lg max-h-[95vh] overflow-hidden p-0">
+            <div className="max-h-[95vh] overflow-y-auto">
+              <DialogHeader className="p-6 pb-4">
+                <DialogTitle>Complete Your Donation</DialogTitle>
+              </DialogHeader>
+              <div className="px-6 pb-6">
+                {clientSecret && (
+                  <StripeProvider clientSecret={clientSecret}>
+                    <PaymentForm
+                      clientSecret={clientSecret}
+                      amount={Math.round(
+                        parseFloat(donationAmount || "0") * 100,
+                      )}
+                      campaignTitle={campaign?.title || "Unknown Campaign"}
+                      onSuccess={handlePaymentSuccess}
+                      onCancel={handlePaymentCancel}
+                    />
+                  </StripeProvider>
+                )}
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
