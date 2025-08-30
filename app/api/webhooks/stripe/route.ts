@@ -78,36 +78,63 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
     return;
   }
 
-  // Update donation status to completed
-  await prisma.donation.updateMany({
-    where: {
-      stripePaymentIntentId: paymentIntent.id,
-    },
-    data: {
-      status: "completed",
-      completedAt: new Date(),
-    },
+  // Try to find existing donation record
+  let donation = await prisma.donation.findFirst({
+    where: { stripePaymentIntentId: paymentIntent.id },
   });
 
-  // Update campaign total if it's a one-time donation
-  if (type !== "recurring_donation") {
-    const donation = await prisma.donation.findFirst({
-      where: { stripePaymentIntentId: paymentIntent.id },
-    });
+  // If no donation record exists, create one (fallback)
+  if (!donation) {
+    console.log(
+      `No donation record found, creating one for payment intent: ${paymentIntent.id}`,
+    );
 
-    if (donation) {
-      await prisma.campaign.update({
-        where: { campaign_id: parseInt(campaignId) },
+    try {
+      donation = await prisma.donation.create({
         data: {
-          currentAmount: {
-            increment: donation.amount,
-          },
+          amount: (paymentIntent.amount || 0) / 100, // Convert from cents to dollars
+          campaign_id: parseInt(campaignId),
+          donor_id: parseInt(userId),
+          status: "completed",
+          stripePaymentIntentId: paymentIntent.id,
+          donationDate: new Date(),
+          completedAt: new Date(),
+          isRecurring: type === "recurring_donation",
+          isAnonymous: false,
         },
       });
+    } catch (createError) {
+      console.error("Error creating donation record in webhook:", createError);
+      return;
     }
+  } else {
+    // Update existing donation status to completed
+    await prisma.donation.updateMany({
+      where: {
+        stripePaymentIntentId: paymentIntent.id,
+      },
+      data: {
+        status: "completed",
+        completedAt: new Date(),
+      },
+    });
   }
 
-  console.log(`Payment succeeded for campaign ${campaignId}`);
+  // Update campaign total if it's a one-time donation
+  if (type !== "recurring_donation" && donation) {
+    await prisma.campaign.update({
+      where: { campaign_id: parseInt(campaignId) },
+      data: {
+        currentAmount: {
+          increment: donation.amount,
+        },
+      },
+    });
+  }
+
+  console.log(
+    `Payment succeeded for campaign ${campaignId}, donation amount: $${donation?.amount}`,
+  );
 }
 
 async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {

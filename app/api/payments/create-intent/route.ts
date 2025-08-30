@@ -154,6 +154,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create donation record in database
+    try {
+      await prisma.donation.create({
+        data: {
+          amount: amount / 100, // Convert from cents to dollars
+          campaign_id: campaignId,
+          donor_id: userId,
+          status: "pending",
+          stripePaymentIntentId: paymentIntent.id,
+          donationDate: new Date(),
+          isRecurring: false,
+          isAnonymous: false,
+        },
+      });
+
+      console.log(
+        `Donation record created for payment intent: ${paymentIntent.id}`,
+      );
+    } catch (dbError) {
+      console.error("Error creating donation record:", dbError);
+      // Continue with payment intent creation even if DB fails
+      // The webhook will handle it as a fallback
+    }
+
     // Log payment intent creation
     console.log(
       `Payment intent created: ${paymentIntent.id} for campaign: ${campaign.title}`,
