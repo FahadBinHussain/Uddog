@@ -1,19 +1,32 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
+import React, { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Heart,
   Share,
@@ -31,286 +44,302 @@ import {
   Target,
   Award,
   FileText,
-  Send
-} from 'lucide-react'
-import { formatCurrency, calculatePercentage, formatRelativeTime, formatDate } from '@/lib/utils'
-import { useToast } from '@/hooks/use-toast'
+  Send,
+} from "lucide-react";
+import {
+  formatCurrency,
+  calculatePercentage,
+  formatRelativeTime,
+  formatDate,
+} from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { StripeProvider } from "@/components/stripe-provider";
+import { PaymentForm } from "@/components/payment-form";
 
 interface Campaign {
-  campaign_id: number
-  title: string
-  description: string
-  goalAmount: number
-  currentAmount: number
-  status: string
-  createdAt: string
-  endDate?: string
-  category: string
-  location: string
-  images: string[]
+  campaign_id: number;
+  title: string;
+  description: string;
+  goalAmount: number;
+  currentAmount: number;
+  status: string;
+  createdAt: string;
+  endDate?: string;
+  category: string;
+  location: string;
+  images: string[];
   user: {
-    name: string
-    email: string
-  }
-  donations: Donation[]
-  comments: Comment[]
-  impactStories: ImpactStory[]
-  isVerified: boolean
+    name: string;
+    email: string;
+  };
+  donations: Donation[];
+  comments: Comment[];
+  impactStories: ImpactStory[];
+  isVerified: boolean;
   verificationInfo?: {
-    status: string
-    verifiedAt: string
+    status: string;
+    verifiedAt: string;
     admin: {
-      name: string
-    }
-  }
+      name: string;
+    };
+  };
   _count: {
-    donations: number
-    comments: number
-    fraudReports: number
-  }
+    donations: number;
+    comments: number;
+    fraudReports: number;
+  };
 }
 
 interface Donation {
-  donation_id: number
-  amount: number
-  donationDate: string
-  isRecurring: boolean
+  donation_id: number;
+  amount: number;
+  donationDate: string;
+  isRecurring: boolean;
   user: {
-    name: string
-  }
+    name: string;
+  };
 }
 
 interface Comment {
-  comment_id: number
-  content: string
-  createdAt: string
+  comment_id: number;
+  content: string;
+  createdAt: string;
   user: {
-    name: string
-  }
+    name: string;
+  };
 }
 
 interface ImpactStory {
-  story_id: number
-  title: string
-  content: string
-  postedAt: string
+  story_id: number;
+  title: string;
+  content: string;
+  postedAt: string;
 }
 
 export default function CampaignPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { data: session } = useSession()
-  const { toast } = useToast()
+  const params = useParams();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const { toast } = useToast();
 
-  const [campaign, setCampaign] = useState<Campaign | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [donationAmount, setDonationAmount] = useState('')
-  const [isRecurring, setIsRecurring] = useState(false)
-  const [donating, setDonating] = useState(false)
-  const [newComment, setNewComment] = useState('')
-  const [commenting, setCommenting] = useState(false)
-  const [reportReason, setReportReason] = useState('')
-  const [reporting, setReporting] = useState(false)
-  const [showReportDialog, setShowReportDialog] = useState(false)
-  const [activeTab, setActiveTab] = useState('story')
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [donationAmount, setDonationAmount] = useState("");
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [donating, setDonating] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [commenting, setCommenting] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reporting, setReporting] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState("story");
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
 
-  const campaignId = Array.isArray(params.id) ? params.id[0] : params.id
+  const campaignId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   useEffect(() => {
     if (campaignId) {
-      fetchCampaign()
+      fetchCampaign();
     }
-  }, [campaignId])
+  }, [campaignId]);
 
   const fetchCampaign = async () => {
     try {
-      setLoading(true)
-      const response = await fetch(`/api/campaigns/${campaignId}`)
+      setLoading(true);
+      const response = await fetch(`/api/campaigns/${campaignId}`);
 
       if (!response.ok) {
-        throw new Error('Campaign not found')
+        throw new Error("Campaign not found");
       }
 
-      const data = await response.json()
-      setCampaign(data.campaign)
+      const data = await response.json();
+      setCampaign(data.campaign);
     } catch (error) {
-      console.error('Error fetching campaign:', error)
+      console.error("Error fetching campaign:", error);
       toast({
         title: "Error",
         description: "Failed to load campaign. Please try again.",
-        variant: "destructive"
-      })
-      router.push('/campaigns')
+        variant: "destructive",
+      });
+      router.push("/campaigns");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleDonate = async () => {
     if (!session) {
-      router.push(`/auth/signin?callbackUrl=/campaigns/${campaignId}`)
-      return
+      router.push(`/auth/signin?callbackUrl=/campaigns/${campaignId}`);
+      return;
     }
 
-    const amount = parseFloat(donationAmount)
+    const amount = parseFloat(donationAmount);
     if (!amount || amount < 1) {
       toast({
         title: "Invalid Amount",
         description: "Please enter a valid donation amount (minimum $1).",
-        variant: "destructive"
-      })
-      return
+        variant: "destructive",
+      });
+      return;
     }
 
     try {
-      setDonating(true)
+      setDonating(true);
 
       // Create payment intent
-      const paymentResponse = await fetch('/api/payments/create-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const paymentResponse = await fetch("/api/payments/create-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount,
+          amount: Math.round(amount * 100), // Convert to cents
           campaignId: parseInt(campaignId),
-          isRecurring
-        })
-      })
+          isRecurring,
+        }),
+      });
 
       if (!paymentResponse.ok) {
-        throw new Error('Failed to create payment intent')
+        const errorData = await paymentResponse.json();
+        throw new Error(errorData.error || "Failed to create payment intent");
       }
 
-      const { clientSecret } = await paymentResponse.json()
-
-      // Redirect to payment page or show payment form
-      // For now, we'll show a success message and refresh the campaign
-      toast({
-        title: "Payment Initiated",
-        description: "Redirecting to payment processor...",
-      })
-
-      // In a real implementation, you'd redirect to Stripe or similar
-      setTimeout(() => {
-        fetchCampaign()
-        setDonationAmount('')
-      }, 1000)
-
+      const { clientSecret: secret } = await paymentResponse.json();
+      setClientSecret(secret);
+      setShowPaymentModal(true);
     } catch (error) {
-      console.error('Error creating donation:', error)
+      console.error("Error creating donation:", error);
       toast({
         title: "Error",
-        description: "Failed to process donation. Please try again.",
-        variant: "destructive"
-      })
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to process donation. Please try again.",
+        variant: "destructive",
+      });
     } finally {
-      setDonating(false)
+      setDonating(false);
     }
-  }
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
+    setClientSecret(null);
+    setDonationAmount("");
+    fetchCampaign(); // Refresh campaign data
+    toast({
+      title: "Thank you!",
+      description: "Your donation has been processed successfully.",
+      variant: "success",
+    });
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPaymentModal(false);
+    setClientSecret(null);
+  };
 
   const handleComment = async () => {
     if (!session) {
-      router.push(`/auth/signin?callbackUrl=/campaigns/${campaignId}`)
-      return
+      router.push(`/auth/signin?callbackUrl=/campaigns/${campaignId}`);
+      return;
     }
 
     if (!newComment.trim()) {
       toast({
         title: "Invalid Comment",
         description: "Please enter a comment.",
-        variant: "destructive"
-      })
-      return
+        variant: "destructive",
+      });
+      return;
     }
 
     try {
-      setCommenting(true)
+      setCommenting(true);
 
-      const response = await fetch('/api/comments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           campaignId: parseInt(campaignId),
-          content: newComment.trim()
-        })
-      })
+          content: newComment.trim(),
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to post comment')
+        throw new Error("Failed to post comment");
       }
 
       toast({
         title: "Comment Posted",
         description: "Your comment has been added successfully.",
-      })
+      });
 
-      setNewComment('')
-      fetchCampaign() // Refresh to show new comment
-
+      setNewComment("");
+      fetchCampaign(); // Refresh to show new comment
     } catch (error) {
-      console.error('Error posting comment:', error)
+      console.error("Error posting comment:", error);
       toast({
         title: "Error",
         description: "Failed to post comment. Please try again.",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     } finally {
-      setCommenting(false)
+      setCommenting(false);
     }
-  }
+  };
 
   const handleReport = async () => {
     if (!session) {
-      router.push(`/auth/signin?callbackUrl=/campaigns/${campaignId}`)
-      return
+      router.push(`/auth/signin?callbackUrl=/campaigns/${campaignId}`);
+      return;
     }
 
     if (!reportReason.trim()) {
       toast({
         title: "Invalid Report",
         description: "Please provide a reason for reporting.",
-        variant: "destructive"
-      })
-      return
+        variant: "destructive",
+      });
+      return;
     }
 
     try {
-      setReporting(true)
+      setReporting(true);
 
-      const response = await fetch('/api/reports', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           campaignId: parseInt(campaignId),
-          reason: reportReason.trim()
-        })
-      })
+          reason: reportReason.trim(),
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to submit report')
+        throw new Error("Failed to submit report");
       }
 
       toast({
         title: "Report Submitted",
         description: "Thank you for your report. We'll review it shortly.",
-      })
+      });
 
-      setReportReason('')
-      setShowReportDialog(false)
-
+      setReportReason("");
+      setShowReportDialog(false);
     } catch (error) {
-      console.error('Error submitting report:', error)
+      console.error("Error submitting report:", error);
       toast({
         title: "Error",
         description: "Failed to submit report. Please try again.",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     } finally {
-      setReporting(false)
+      setReporting(false);
     }
-  }
+  };
 
   const handleShare = async () => {
-    const url = `${window.location.origin}/campaigns/${campaignId}`
+    const url = `${window.location.origin}/campaigns/${campaignId}`;
 
     if (navigator.share) {
       try {
@@ -318,7 +347,7 @@ export default function CampaignPage() {
           title: campaign?.title,
           text: campaign?.description,
           url: url,
-        })
+        });
       } catch (error) {
         // User cancelled the share
       }
@@ -328,10 +357,10 @@ export default function CampaignPage() {
         toast({
           title: "Link Copied",
           description: "Campaign link has been copied to your clipboard.",
-        })
-      })
+        });
+      });
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -341,7 +370,7 @@ export default function CampaignPage() {
           <p className="text-muted-foreground">Loading campaign...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!campaign) {
@@ -360,15 +389,24 @@ export default function CampaignPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
-  const progressPercentage = calculatePercentage(campaign.currentAmount, campaign.goalAmount)
-  const isOwner = session?.user?.id === campaign.user.email // Adjust based on your user ID structure
-  const isExpired = campaign.endDate && new Date(campaign.endDate) < new Date()
-  const daysLeft = campaign.endDate ?
-    Math.max(0, Math.ceil((new Date(campaign.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))) :
-    null
+  const progressPercentage = calculatePercentage(
+    campaign.currentAmount,
+    campaign.goalAmount,
+  );
+  const isOwner = session?.user?.id === campaign.user.email; // Adjust based on your user ID structure
+  const isExpired = campaign.endDate && new Date(campaign.endDate) < new Date();
+  const daysLeft = campaign.endDate
+    ? Math.max(
+        0,
+        Math.ceil(
+          (new Date(campaign.endDate).getTime() - new Date().getTime()) /
+            (1000 * 60 * 60 * 24),
+        ),
+      )
+    : null;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -379,12 +417,17 @@ export default function CampaignPage() {
             <div className="flex items-center gap-4">
               <Badge variant="outline">{campaign.category}</Badge>
               {campaign.isVerified && (
-                <Badge variant="secondary" className="text-green-700 bg-green-100">
+                <Badge
+                  variant="secondary"
+                  className="text-green-700 bg-green-100"
+                >
                   <CheckCircle className="w-4 h-4 mr-1" />
                   Verified
                 </Badge>
               )}
-              <Badge variant={campaign.status === 'active' ? 'default' : 'secondary'}>
+              <Badge
+                variant={campaign.status === "active" ? "default" : "secondary"}
+              >
                 {campaign.status}
               </Badge>
             </div>
@@ -414,7 +457,9 @@ export default function CampaignPage() {
             </div>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">{campaign.title}</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4">
+            {campaign.title}
+          </h1>
 
           <div className="flex items-center gap-6 text-muted-foreground text-sm">
             <div className="flex items-center gap-1">
@@ -456,27 +501,40 @@ export default function CampaignPage() {
 
             {/* Campaign Tabs */}
             <Card>
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
                 <CardHeader>
                   <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="story">Story</TabsTrigger>
-                    <TabsTrigger value="updates">Updates ({campaign.impactStories.length})</TabsTrigger>
-                    <TabsTrigger value="comments">Comments ({campaign.comments.length})</TabsTrigger>
-                    <TabsTrigger value="donations">Donations ({campaign.donations.length})</TabsTrigger>
+                    <TabsTrigger value="updates">
+                      Updates ({campaign.impactStories.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="comments">
+                      Comments ({campaign.comments.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="donations">
+                      Donations ({campaign.donations.length})
+                    </TabsTrigger>
                   </TabsList>
                 </CardHeader>
 
                 <CardContent>
                   <TabsContent value="story" className="space-y-4">
                     <div className="prose prose-sm max-w-none">
-                      <p className="whitespace-pre-wrap">{campaign.description}</p>
+                      <p className="whitespace-pre-wrap">
+                        {campaign.description}
+                      </p>
                     </div>
 
                     {campaign.isVerified && campaign.verificationInfo && (
                       <Alert>
                         <CheckCircle className="h-4 w-4" />
                         <AlertDescription>
-                          This campaign was verified by {campaign.verificationInfo.admin.name} on{' '}
+                          This campaign was verified by{" "}
+                          {campaign.verificationInfo.admin.name} on{" "}
                           {formatDate(campaign.verificationInfo.verifiedAt)}
                         </AlertDescription>
                       </Alert>
@@ -492,7 +550,10 @@ export default function CampaignPage() {
                     ) : (
                       <div className="space-y-6">
                         {campaign.impactStories.map((story) => (
-                          <div key={story.story_id} className="border-l-4 border-blue-200 pl-4">
+                          <div
+                            key={story.story_id}
+                            className="border-l-4 border-blue-200 pl-4"
+                          >
                             <div className="flex items-center gap-2 mb-2">
                               <h3 className="font-semibold">{story.title}</h3>
                               <Badge variant="outline" className="text-xs">
@@ -524,7 +585,7 @@ export default function CampaignPage() {
                           size="sm"
                         >
                           <Send className="w-4 h-4 mr-2" />
-                          {commenting ? 'Posting...' : 'Post Comment'}
+                          {commenting ? "Posting..." : "Post Comment"}
                         </Button>
                       </div>
                     )}
@@ -538,9 +599,13 @@ export default function CampaignPage() {
                         <p className="text-muted-foreground">No comments yet</p>
                         {!session && (
                           <p className="text-sm text-muted-foreground mt-2">
-                            <Link href={`/auth/signin?callbackUrl=/campaigns/${campaignId}`} className="text-blue-600 hover:underline">
+                            <Link
+                              href={`/auth/signin?callbackUrl=/campaigns/${campaignId}`}
+                              className="text-blue-600 hover:underline"
+                            >
                               Sign in
-                            </Link> to leave a comment
+                            </Link>{" "}
+                            to leave a comment
                           </p>
                         )}
                       </div>
@@ -549,7 +614,9 @@ export default function CampaignPage() {
                         {campaign.comments.map((comment) => (
                           <div key={comment.comment_id} className="space-y-2">
                             <div className="flex items-center gap-2">
-                              <span className="font-medium text-sm">{comment.user.name}</span>
+                              <span className="font-medium text-sm">
+                                {comment.user.name}
+                              </span>
                               <span className="text-xs text-muted-foreground">
                                 {formatRelativeTime(comment.createdAt)}
                               </span>
@@ -565,20 +632,28 @@ export default function CampaignPage() {
                     {campaign.donations.length === 0 ? (
                       <div className="text-center py-8">
                         <Heart className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                        <p className="text-muted-foreground">No donations yet</p>
-                        <p className="text-sm text-muted-foreground mt-2">Be the first to support this campaign!</p>
+                        <p className="text-muted-foreground">
+                          No donations yet
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Be the first to support this campaign!
+                        </p>
                       </div>
                     ) : (
                       <div className="space-y-3">
                         {campaign.donations.map((donation) => (
-                          <div key={donation.donation_id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <div
+                            key={donation.donation_id}
+                            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                          >
                             <div>
                               <p className="font-medium">
-                                {donation.user.name} donated {formatCurrency(donation.amount)}
+                                {donation.user.name} donated{" "}
+                                {formatCurrency(donation.amount)}
                               </p>
                               <p className="text-sm text-muted-foreground">
                                 {formatRelativeTime(donation.donationDate)}
-                                {donation.isRecurring && ' • Recurring'}
+                                {donation.isRecurring && " • Recurring"}
                               </p>
                             </div>
                             <Heart className="w-5 h-5 text-red-500" />
@@ -612,18 +687,26 @@ export default function CampaignPage() {
 
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
-                    <div className="text-lg font-semibold">{progressPercentage}%</div>
+                    <div className="text-lg font-semibold">
+                      {progressPercentage}%
+                    </div>
                     <div className="text-xs text-muted-foreground">Funded</div>
                   </div>
                   <div>
-                    <div className="text-lg font-semibold">{campaign._count.donations}</div>
-                    <div className="text-xs text-muted-foreground">Donations</div>
+                    <div className="text-lg font-semibold">
+                      {campaign._count.donations}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Donations
+                    </div>
                   </div>
                   <div>
                     <div className="text-lg font-semibold">
-                      {daysLeft !== null ? (isExpired ? '0' : daysLeft) : '∞'}
+                      {daysLeft !== null ? (isExpired ? "0" : daysLeft) : "∞"}
                     </div>
-                    <div className="text-xs text-muted-foreground">Days left</div>
+                    <div className="text-xs text-muted-foreground">
+                      Days left
+                    </div>
                   </div>
                 </div>
 
@@ -639,7 +722,7 @@ export default function CampaignPage() {
             </Card>
 
             {/* Donation Form */}
-            {!isExpired && campaign.status === 'active' && (
+            {!isExpired && campaign.status === "active" && (
               <Card>
                 <CardHeader>
                   <CardTitle>Support this campaign</CardTitle>
@@ -647,7 +730,9 @@ export default function CampaignPage() {
 
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Donation Amount</label>
+                    <label className="text-sm font-medium">
+                      Donation Amount
+                    </label>
                     <div className="relative">
                       <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
@@ -691,19 +776,27 @@ export default function CampaignPage() {
 
                   <Button
                     onClick={handleDonate}
-                    disabled={donating || !donationAmount || parseFloat(donationAmount) < 1}
+                    disabled={
+                      donating ||
+                      !donationAmount ||
+                      parseFloat(donationAmount) < 1
+                    }
                     className="w-full"
                     size="lg"
                   >
                     <Heart className="w-4 h-4 mr-2" />
-                    {donating ? 'Processing...' : 'Donate Now'}
+                    {donating ? "Processing..." : "Donate Now"}
                   </Button>
 
                   {!session && (
                     <p className="text-xs text-center text-muted-foreground">
-                      <Link href={`/auth/signin?callbackUrl=/campaigns/${campaignId}`} className="text-blue-600 hover:underline">
+                      <Link
+                        href={`/auth/signin?callbackUrl=/campaigns/${campaignId}`}
+                        className="text-blue-600 hover:underline"
+                      >
                         Sign in
-                      </Link> to donate
+                      </Link>{" "}
+                      to donate
                     </p>
                   )}
                 </CardContent>
@@ -717,7 +810,11 @@ export default function CampaignPage() {
               </CardHeader>
 
               <CardContent>
-                <Button variant="outline" onClick={handleShare} className="w-full">
+                <Button
+                  variant="outline"
+                  onClick={handleShare}
+                  className="w-full"
+                >
                   <Share className="w-4 h-4 mr-2" />
                   Share Campaign
                 </Button>
@@ -759,13 +856,33 @@ export default function CampaignPage() {
                   disabled={reporting || !reportReason.trim()}
                   className="flex-1"
                 >
-                  {reporting ? 'Submitting...' : 'Submit Report'}
+                  {reporting ? "Submitting..." : "Submit Report"}
                 </Button>
               </CardFooter>
             </Card>
           </div>
         )}
+
+        {/* Payment Modal */}
+        <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Complete Your Donation</DialogTitle>
+            </DialogHeader>
+            {clientSecret && (
+              <StripeProvider>
+                <PaymentForm
+                  clientSecret={clientSecret}
+                  amount={Math.round(parseFloat(donationAmount || "0") * 100)}
+                  campaignTitle={campaign?.title || "Unknown Campaign"}
+                  onSuccess={handlePaymentSuccess}
+                  onCancel={handlePaymentCancel}
+                />
+              </StripeProvider>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
-  )
+  );
 }
