@@ -233,12 +233,15 @@ export default function CampaignPage() {
 
   const handlePaymentSuccess = async () => {
     const donatedAmount = parseFloat(donationAmount || "0");
+    const expectedNewAmount = campaign
+      ? campaign.currentAmount + donatedAmount
+      : 0;
 
     // Optimistic update - immediately update UI
     if (campaign) {
       setCampaign({
         ...campaign,
-        currentAmount: campaign.currentAmount + donatedAmount,
+        currentAmount: expectedNewAmount,
         donations: [
           ...campaign.donations,
           {
@@ -263,16 +266,39 @@ export default function CampaignPage() {
     });
 
     // Poll for updated data with delays to allow webhook processing
+    // Only update if server data shows the donation was processed
     const pollForUpdates = async (attempts = 0) => {
       const maxAttempts = 5;
-      const delays = [1000, 2000, 3000, 5000, 8000]; // Increasing delays
+      const delays = [2000, 3000, 4000, 6000, 8000]; // Start with longer delay
 
       if (attempts < maxAttempts) {
         await new Promise((resolve) => setTimeout(resolve, delays[attempts]));
-        await fetchCampaign(true); // Show refresh indicator
 
-        // Continue polling
-        setTimeout(() => pollForUpdates(attempts + 1), 0);
+        try {
+          const response = await fetch(`/api/campaigns/${campaignId}`);
+          if (response.ok) {
+            const data = await response.json();
+            const serverAmount = data.campaign.currentAmount;
+
+            // Only update if server amount is >= our expected amount
+            // This means the webhook has processed the donation
+            if (serverAmount >= expectedNewAmount) {
+              setCampaign(data.campaign);
+              setIsRefreshing(false);
+              return; // Stop polling
+            }
+          }
+        } catch (error) {
+          console.error("Error polling for updates:", error);
+        }
+
+        // Continue polling if server hasn't caught up yet
+        if (attempts < maxAttempts - 1) {
+          setIsRefreshing(true);
+          setTimeout(() => pollForUpdates(attempts + 1), 0);
+        } else {
+          setIsRefreshing(false);
+        }
       }
     };
 
