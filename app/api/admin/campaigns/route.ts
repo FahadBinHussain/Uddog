@@ -20,7 +20,8 @@ export async function GET(request: NextRequest) {
       where: { user_id: parseInt(session.user.id) },
     });
 
-    if (!user || user.role !== USER_ROLES.ADMIN) {
+    console.log("User role check:", user?.role, "Expected:", USER_ROLES.ADMIN);
+    if (!user || user.role.toLowerCase() !== USER_ROLES.ADMIN.toLowerCase()) {
       return NextResponse.json(
         { error: "Admin access required" },
         { status: 403 },
@@ -117,16 +118,26 @@ export async function PATCH(request: NextRequest) {
       where: { user_id: parseInt(session.user.id) },
     });
 
-    if (!admin || admin.role !== USER_ROLES.ADMIN) {
+    console.log(
+      "Admin role check:",
+      admin?.role,
+      "Expected:",
+      USER_ROLES.ADMIN,
+    );
+    if (!admin || admin.role.toLowerCase() !== USER_ROLES.ADMIN.toLowerCase()) {
       return NextResponse.json(
         { error: "Admin access required" },
         { status: 403 },
       );
     }
 
-    const { campaignId, action, reason } = await request.json();
+    const body = await request.json();
+    console.log("Admin campaigns PATCH request body:", body);
+
+    const { campaignId, action, reason } = body;
 
     if (!campaignId || !action) {
+      console.log("Missing required fields:", { campaignId, action });
       return NextResponse.json(
         { error: "Campaign ID and action are required" },
         { status: 400 },
@@ -134,6 +145,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (!["approve", "reject"].includes(action)) {
+      console.log("Invalid action received:", action);
       return NextResponse.json(
         { error: "Invalid action. Must be 'approve' or 'reject'" },
         { status: 400 },
@@ -151,6 +163,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!campaign) {
+      console.log("Campaign not found with ID:", campaignId);
       return NextResponse.json(
         { error: "Campaign not found" },
         { status: 404 },
@@ -158,6 +171,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (campaign.status !== CAMPAIGN_STATUSES.PENDING) {
+      console.log("Campaign status is not pending:", campaign.status);
       return NextResponse.json(
         { error: "Campaign is not pending approval" },
         { status: 400 },
@@ -165,7 +179,10 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Update campaign status and create verification record
-    const newStatus = action === "approve" ? CAMPAIGN_STATUSES.ACTIVE : CAMPAIGN_STATUSES.CANCELLED;
+    const newStatus =
+      action === "approve"
+        ? CAMPAIGN_STATUSES.ACTIVE
+        : CAMPAIGN_STATUSES.CANCELLED;
     const verificationStatus = action === "approve" ? "verified" : "rejected";
 
     await prisma.$transaction(async (tx) => {
@@ -188,7 +205,9 @@ export async function PATCH(request: NextRequest) {
 
     // TODO: Send notification email to campaign creator
     const actionText = action === "approve" ? "approved" : "rejected";
-    console.log(`Campaign "${campaign.title}" has been ${actionText} by admin ${admin.name}`);
+    console.log(
+      `Campaign "${campaign.title}" has been ${actionText} by admin ${admin.name}`,
+    );
 
     return NextResponse.json({
       message: `Campaign ${actionText} successfully`,
