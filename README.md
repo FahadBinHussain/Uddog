@@ -1,5 +1,27 @@
 # UdDog Fundraising Platform
 
+<img src="https://wakapi-qt1b.onrender.com/api/badge/fahad/interval:any/project:Uddog"
+     alt="Wakapi Time Tracking"
+     title="Spent more than that amount of time spent on this project">
+
+<div align="center">
+  <h2>✨ See Uddog in Action ✨</h2>
+  <table>
+    <tr>
+      <td width="50%">
+        <p><strong>Frontend</strong></p>
+        <img src="https://i.ibb.co.com/W4mFVc8t/img28.jpg" alt="1" width="100%">
+        <img src="https://i.ibb.co.com/WvdjgTTs/img29.jpg" alt="2" width="100%">
+      </td>
+      <td width="50%">
+        <p><strong>Backend</strong></p>
+        <img src="https://i.ibb.co.com/W46sH9dd/img32.jpg" alt="3" width="100%">
+        <img src="https://i.ibb.co.com/39zv7MYS/img36.jpg" alt="4" width="100%">
+      </td>
+    </tr>
+  </table>
+</div>
+
 A modern, full-stack fundraising platform built with Next.js 14, enabling users to create campaigns, accept donations, and manage their fundraising efforts.
 
 ## 🌟 Features
@@ -43,7 +65,7 @@ A modern, full-stack fundraising platform built with Next.js 14, enabling users 
 ## 📦 Installation
 
 ### Prerequisites
-- Node.js 18+ 
+- Node.js 18+
 - PostgreSQL database
 - Stripe account
 - (Optional) Supabase project for real-time features
